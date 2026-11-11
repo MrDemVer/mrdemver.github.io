@@ -25,6 +25,19 @@
 <h1>R+Task: как писать проги и не сойти с ума</h1>
 <p class="lead">RoboPlus Task для CM-530. Всё ниже замерено на железе, и почти ничего из этого нет в инструкции.</p>
 
+<h2>Потолки R+Task, в которые я упёрся</h2>
+<div class="table-wrap"><table>
+<tr><th>Потолок</th><th>Что на деле</th><th>Как жить</th></tr>
+<tr><td>Переменные</td><td>50 штук, 51-я не даёт залить прогу. Редактор считает на 1–2 больше, чем есть в файле</td><td>держать до 47–48, паковать два числа в одну (<a href="#vars">п.2</a>)</td></tr>
+<tr><td>Пауза <code>wait … timer_num</code></td><td>стоит около 1 с, вся прога в это время стоит</td><td>в главном цикле не ждать, а проверять таймер (<a href="#waits">п.1</a>)</td></tr>
+<tr><td>Скорость цикла</td><td>около 2700 проходов в секунду, если нет пауз</td><td>этого хватает, тормозят только паузы</td></tr>
+<tr><td>Камера во время движения</td><td>пока играет страница движения, шина серво занята, и камеру нормально не прочитать</td><td>читать камеру между шагами. Из-за этого я ушёл на <a href="firmware.html">свою прошивку</a></td></tr>
+<tr><td>Опрос серво</td><td>при частом чтении во время движения идут ошибки шины</td><td>не чаще раза в 0.1–0.15 с (<a href="#servo">п.5</a>)</td></tr>
+<tr><td>Адреса серво</td><td>если в <code>motor:ID:адрес</code> стоит адрес, которого нет у CM-530 (например 24–30), RoboPlus открывает файл как OpenCM 9.04 и ломает строки</td><td>такие адреса задавать через переменные</td></tr>
+<tr><td>Звук</td><td>мелодия из нескольких нот требует пауз</td><td>в боевом цикле одна мелодия одной строкой (<a href="#sound">п.6</a>)</td></tr>
+<tr><td>Место под прогу</td><td>128 КБ флеша. Мой нападающий весит около 6 КБ</td><td>в место не упирался ни разу, упирался в переменные</td></tr>
+</table></div>
+
 <h2>Окно R+Task 2.0: что где</h2>
 <figure class="shot">
   <img src="img/task.jpg" width="1400" height="784" alt="Окно R+Task 2.0 с пронумерованными кнопками" loading="lazy">
@@ -126,7 +139,7 @@
 </ol>
 <div class="note"><p><b>Как отлаживать:</b> в нужных местах проги печатай маркер и числа (<code>cm:9 = 7777</code>, потом <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), залей, открой F3 и нажми Start. Положи робота в нужную ситуацию и запиши числа. Пороги ставь по ним, а не на глаз.</p></div>
 
-<h2>1. Паузы внутри главного цикла убивают реакцию</h2>
+<h2 id="waits">1. Паузы внутри главного цикла убивают реакцию</h2>
 <p>Классическая конструкция паузы:</p>
 <pre><code>load  cm:5 = timer_num:1
 wait  cm:5 > timer_num:0</code></pre>
@@ -139,7 +152,7 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 <div class="warn"><p><code>hrtimer</code> паузой <b>не является</b>: <code>wait cm:6 == 0</code> после него проходит мгновенно. Если прога «тормозит», ищи <code>wait ... timer_num</code> внутри цикла, а не крути hrtimer.</p></div>
 <p>Против шума датчика не усредняй N замеров с паузами, а считай срабатывания подряд: <code>if условие then счётчик+1 else счётчик=0</code>, реагируй при <code>счётчик ≥ N</code>.</p>
 
-<h2>2. Лимит 50 переменных</h2>
+<h2 id="vars">2. Лимит 50 переменных</h2>
 <p>51-я переменная = ошибка при загрузке. Причём R+Task считает на 1–2 больше, чем ты видишь в файле, поэтому держи <b>не больше 47–48</b>.</p>
 <p>Зато переменная шире 16 бит, и в неё влезают два числа:</p>
 <pre><code>упаковать:  P = x*1000 + y
@@ -168,7 +181,7 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
   <li>Подъёмы длинные (4–10 с). Если ждать меньше, подъём оборвётся на середине, и покажется, что «играет не та страница».</li>
 </ul>
 
-<h2>5. Серво: что читать</h2>
+<h2 id="servo">5. Серво: что читать</h2>
 <div class="table-wrap"><table>
 <tr><th>в Task</th><th>адрес AX-12</th><th>что</th></tr>
 <tr><td><code>motor:id:100</code></td><td>24</td><td>момент вкл/выкл</td></tr>
@@ -180,7 +193,7 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 </table></div>
 <p>Частый опрос серво во время движения даёт ошибки шины. Читай не чаще раза в 0.1–0.15 с.</p>
 
-<h2>6. Кнопки и звук</h2>
+<h2 id="sound">6. Кнопки и звук</h2>
 <ul>
   <li>Кнопки: <code>cm:4</code>. START = 16, U = 8, D = 4 (по факту, не как в таблице ROBOTIS). Нажатие START прогу не останавливает.</li>
   <li>Зуммер: <b>сначала</b> <code>cm:18</code> (время, 255 = режим мелодий), <b>потом</b> <code>cm:17</code> (номер мелодии 0..26 или ноты 0..51). В обратном порядке не сработает.</li>
@@ -194,6 +207,19 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 <div class="en">
 <h1>R+Task: writing programs without losing your mind</h1>
 <p class="lead">RoboPlus Task on the CM-530. Everything below was measured on hardware, and almost none of it is in the manual.</p>
+
+<h2>R+Task limits I ran into</h2>
+<div class="table-wrap"><table>
+<tr><th>Limit</th><th>What it really is</th><th>How to live with it</th></tr>
+<tr><td>Variables</td><td>50; the 51st blocks the download. The editor counts 1–2 more than the file has</td><td>keep to 47–48, pack two numbers into one (<a href="#vars-en">section 2</a>)</td></tr>
+<tr><td><code>wait … timer_num</code></td><td>costs about 1 s, the whole program stalls</td><td>don't wait in the main loop, check the timer instead (<a href="#waits-en">section 1</a>)</td></tr>
+<tr><td>Loop speed</td><td>about 2700 passes per second without waits</td><td>plenty; only waits slow it down</td></tr>
+<tr><td>Camera during a motion</td><td>while a motion page plays, the servo bus is busy and the camera can't be read reliably</td><td>read the camera between steps. This is why I moved to <a href="firmware.html">custom firmware</a></td></tr>
+<tr><td>Servo polling</td><td>reading servos too often during a motion causes bus errors</td><td>no more than once per 0.1–0.15 s (<a href="#servo-en">section 5</a>)</td></tr>
+<tr><td>Servo addresses</td><td>an address in <code>motor:ID:addr</code> that the CM-530 doesn't have (e.g. 24–30) makes RoboPlus open the file as OpenCM 9.04 and break lines</td><td>pass such addresses through variables</td></tr>
+<tr><td>Sound</td><td>a multi-note tune needs waits</td><td>one single-line tune in the main loop (<a href="#sound-en">section 6</a>)</td></tr>
+<tr><td>Program size</td><td>128 KB of flash. My striker is about 6 KB</td><td>never hit it; variables run out first</td></tr>
+</table></div>
 
 <h2>The R+Task 2.0 window</h2>
 <figure class="shot">
@@ -296,7 +322,7 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 </ol>
 <div class="note"><p><b>How to debug:</b> print a marker and numbers where you need them (<code>cm:9 = 7777</code>, then <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), upload, open F3 and press Start. Put the robot in the situation and write the numbers down. Set thresholds from them, not by eye.</p></div>
 
-<h2>1. Waits inside the main loop kill reaction time</h2>
+<h2 id="waits-en">1. Waits inside the main loop kill reaction time</h2>
 <p>The classic pause:</p>
 <pre><code>load  cm:5 = timer_num:1
 wait  cm:5 > timer_num:0</code></pre>
@@ -309,7 +335,7 @@ if (cm:5 &lt;= timer_num:0) then ... // time is up</code></pre>
 <div class="warn"><p><code>hrtimer</code> is <b>not</b> a pause: <code>wait cm:6 == 0</code> after it passes instantly. If the program "lags", look for <code>wait ... timer_num</code> in the loop, don't tune hrtimer.</p></div>
 <p>To filter sensor noise, don't average N samples with waits. Count consecutive hits instead: <code>if cond then cnt+1 else cnt=0</code>, act when <code>cnt ≥ N</code>.</p>
 
-<h2>2. The 50-variable limit</h2>
+<h2 id="vars-en">2. The 50-variable limit</h2>
 <p>Variable #51 = download error. R+Task also counts 1–2 more than you see in the file, so keep it at <b>47–48 max</b>.</p>
 <p>Variables are wider than 16 bits, though, so two numbers fit in one:</p>
 <pre><code>pack:     P = x*1000 + y
@@ -338,7 +364,7 @@ get y:    T = T * 1000 ;  y = P - T</code></pre>
   <li>Get-up pages are long (4–10 s). Wait less and the get-up is cut in half, and it looks like "the wrong page plays".</li>
 </ul>
 
-<h2>5. Servos: what to read</h2>
+<h2 id="servo-en">5. Servos: what to read</h2>
 <div class="table-wrap"><table>
 <tr><th>in Task</th><th>AX-12 addr</th><th>meaning</th></tr>
 <tr><td><code>motor:id:100</code></td><td>24</td><td>torque on/off</td></tr>
@@ -350,7 +376,7 @@ get y:    T = T * 1000 ;  y = P - T</code></pre>
 </table></div>
 <p>Polling servos too often during a motion causes bus errors. Read at most every 0.1–0.15 s.</p>
 
-<h2>6. Buttons and sound</h2>
+<h2 id="sound-en">6. Buttons and sound</h2>
 <ul>
   <li>Buttons: <code>cm:4</code>. START = 16, U = 8, D = 4 (measured, not what the ROBOTIS table says). Pressing START does not stop the program.</li>
   <li>Buzzer: <b>first</b> <code>cm:18</code> (time, 255 = melody mode), <b>then</b> <code>cm:17</code> (melody 0..26 or note 0..51). The other order doesn't work.</li>
