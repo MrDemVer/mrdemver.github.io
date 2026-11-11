@@ -45,6 +45,35 @@
   <li>Под весом AX-12 отстаёт от команды примерно на 14 мс и проходит около 29° за 130 мс. Учитывай это в быстрых движениях.</li>
 </ul>
 
+<h2>Колени: главные проблемы</h2>
+<p>Колени (серво ID 13 и 14) — самые нагруженные суставы Bioloid: на них держится почти весь вес робота в согнутой стойке. Отсюда почти все беды с ходьбой.</p>
+
+<h3>1. Колено меняет наклон всего корпуса</h3>
+<p>Пока стопа стоит на полу, наклон корпуса считается так:</p>
+<pre><code>наклон корпуса = бедро + голеностоп − колено</code></pre>
+<p>Прибавил колено на 1°, и корпус ушёл <b>назад</b> ровно на 1°. Убавил — ушёл вперёд. Отсюда правило:</p>
+<div class="warn"><p><b>Меняешь колено на X — меняй голеностоп на столько же в ту же сторону.</b> Тогда наклон корпуса не изменится. У нас было так: колени уменьшили до 105 и голеностоп не тронули, и робот начал падать вперёд и перестал ходить назад. Лечилось голеностопом, а не «ещё меньше колени».</p></div>
+
+<h3>2. Колени проседают под весом</h3>
+<ul>
+  <li>Под весом AX-12 недожимает до цели, у нас около 6°. В R+Motion поза одна, а на роботе колени согнуты сильнее, и робот стоит ниже и наклонён не так, как модель.</li>
+  <li>Поэтому поза, идеальная в редакторе или симуляторе, на железе может валить робота. Подбирай на живом роботе.</li>
+  <li>Чем глубже присед, тем больше нагрузка на колени. Низкая стойка устойчивее, но колени греются быстрее. У нас на ходьбе колено около 108–110°.</li>
+</ul>
+
+<h3>3. Колени перегреваются первыми</h3>
+<ul>
+  <li>После долгой игры колени и голеностопы горячее остальных. Горячее серво слабеет, и робот «оседает» и падает на тех же движениях, что утром стояли.</li>
+  <li>Проверяй температуру: <code>motor:13:113</code> и <code>motor:14:113</code>, предел 70 °C. Между матчами дай роботу остыть, лучше лёжа или с выключенным моментом.</li>
+  <li>Не держи робота долго в глубоком приседе без дела: колени греются, даже когда он стоит на месте.</li>
+</ul>
+
+<h3>4. Чужие движения под твои колени</h3>
+<p>Если твоя стойка отличается от заводской (другие колени), заводские и чужие движения надо пересчитывать: колено и голеностоп на всех страницах, по правилу из п.1. Мы так перевели 153 заводские страницы ROBOTIS (ходьба в 8 направлений), и они заработали на нашем роботе без падений.</p>
+
+<h3>5. Прямые ноги — красиво, но сложно</h3>
+<p>Ходьба «как человек», почти на прямых коленях, выглядит круто. Но центр тяжести выше, и робот у нас падал назад почти на всех вариантах. Устояла только ходьба «по фазам»: сначала перенести вес на опорную ногу, потом шагать. Для матча надёжнее обычная ходьба на согнутых коленях.</p>
+
 <h2>Любая переделка робота сдвигает центр тяжести</h2>
 <div class="warn"><p><b>Главное правило:</b> поменял что-то в роботе — проверяй и правь движения. Все страницы в R+Motion рассчитаны на определённое положение центра тяжести. Сдвинулся он хотя бы на сантиметр, и робот начинает заваливаться на ходьбе, ударах и подъёмах, которые вчера работали.</p></div>
 <p>Что сдвигает центр тяжести:</p>
@@ -91,6 +120,35 @@
   <li><b>Stripped gears:</b> move the servo 40 units and check it got there. Under load there is always some shortfall (about 6° for us), but if one servo falls short much more than the others, replace it.</li>
   <li>Under load an AX-12 lags the command by about 14 ms and moves about 29° in 130 ms. Keep that in mind for fast motions.</li>
 </ul>
+
+<h2>Knees: the main problems</h2>
+<p>The knees (servos ID 13 and 14) are the most loaded joints on a Bioloid: in a bent stance they carry almost the whole robot. That's where most walking trouble comes from.</p>
+
+<h3>1. The knee changes the whole body's tilt</h3>
+<p>While the foot is on the floor, body tilt works out like this:</p>
+<pre><code>body tilt = hip + ankle − knee</code></pre>
+<p>Add 1° to the knee and the body leans <b>back</b> exactly 1°. Subtract and it leans forward. Hence the rule:</p>
+<div class="warn"><p><b>Change the knee by X, change the ankle by the same amount in the same direction.</b> Then body tilt stays the same. Our story: we lowered the knees to 105 and left the ankles alone, and the robot started falling forward and stopped walking backwards. The fix was the ankles, not "even less knee".</p></div>
+
+<h3>2. Knees sag under load</h3>
+<ul>
+  <li>Under load an AX-12 falls short of its goal, about 6° for us. The pose in R+Motion is one thing; on the robot the knees bend more, so it stands lower and tilts differently from the model.</li>
+  <li>That's why a pose perfect in the editor or simulator can topple the real robot. Tune on the real one.</li>
+  <li>The deeper the crouch, the higher the knee load. A low stance is more stable but the knees heat up faster. Our walking knee is about 108–110°.</li>
+</ul>
+
+<h3>3. Knees overheat first</h3>
+<ul>
+  <li>After a long game the knees and ankles are hotter than the rest. A hot servo gets weaker, the robot "sinks" and falls on motions that were fine in the morning.</li>
+  <li>Check temperature: <code>motor:13:113</code> and <code>motor:14:113</code>, limit 70 °C. Let the robot cool between matches, lying down or with torque off.</li>
+  <li>Don't leave the robot idle in a deep crouch: the knees heat up even while it just stands.</li>
+</ul>
+
+<h3>4. Other people's motions for your knees</h3>
+<p>If your stance differs from stock (different knees), stock and borrowed motions need recomputing: knee and ankle on every page, using the rule in #1. We converted 153 stock ROBOTIS pages (walking in 8 directions) this way, and they worked on our robot without falls.</p>
+
+<h3>5. Straight legs: pretty, but hard</h3>
+<p>Walking "like a human" on almost straight knees looks great. But the centre of mass is higher, and our robot fell backwards on almost every version. Only a "phased" walk survived: shift weight onto the standing leg first, then step. For matches, a normal bent-knee walk is more reliable.</p>
 
 <h2>Any change to the robot moves its centre of mass</h2>
 <div class="warn"><p><b>Main rule:</b> changed something on the robot? Check and fix your motions. Every R+Motion page is tuned for a certain centre of mass. Move it even a centimetre and the robot starts tipping on walks, kicks and get-ups that worked yesterday.</p></div>
