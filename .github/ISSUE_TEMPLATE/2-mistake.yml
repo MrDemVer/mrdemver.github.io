@@ -1,0 +1,18 @@
+name: "Нашёл ошибку на сайте / Found a mistake"
+description: "Что-то на сайте неверно или не работает / Something on the site is wrong"
+title: "[Ошибка] "
+labels: ["ошибка"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: "Страница / Page"
+      placeholder: "например / e.g. task.html, п.4"
+    validations:
+      required: true
+  - type: textarea
+    id: text
+    attributes:
+      label: "Что не так / What's wrong"
+    validations:
+      required: true

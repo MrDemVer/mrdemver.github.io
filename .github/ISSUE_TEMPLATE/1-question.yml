@@ -1,0 +1,19 @@
+name: "Вопрос / Question"
+description: "Спросить про Bioloid, RoboPlus, камеру, прошивку / Ask about Bioloid, RoboPlus, camera, firmware"
+title: "[Вопрос] "
+labels: ["вопрос"]
+body:
+  - type: dropdown
+    id: topic
+    attributes:
+      label: "Тема / Topic"
+      options: ["R+Task", "R+Motion", "Гироскоп / Gyro", "Камеры / Cameras", "Своя прошивка / Firmware", "Железо / Hardware", "Другое / Other"]
+    validations:
+      required: true
+  - type: textarea
+    id: text
+    attributes:
+      label: "Вопрос / Question"
+      description: "Что делаешь, что ожидаешь, что получается. Числа из терминала очень помогают. / What you do, what you expect, what happens. Terminal numbers help a lot."
+    validations:
+      required: true

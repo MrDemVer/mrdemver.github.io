@@ -1,0 +1,11 @@
+name: "Идея / Idea"
+description: "Предложить тему или поделиться своим опытом / Suggest a topic or share your experience"
+title: "[Идея] "
+labels: ["идея"]
+body:
+  - type: textarea
+    id: text
+    attributes:
+      label: "Идея / Idea"
+    validations:
+      required: true
