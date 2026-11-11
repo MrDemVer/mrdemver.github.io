@@ -24,7 +24,7 @@
 <main>
 <div class="ru">
 <h1>Камеры TrackingCam v2 и v3</h1>
-<p class="lead">Камера ищет цветные пятна (блобы) и отдаёт их координаты роботу по шине Dynamixel. ID камеры обычно 51, в Task чтение выглядит как <code>custom:w:51:адрес</code>.</p>
+<p class="lead">Камера ищет цветные пятна (блобы) и отдаёт их координаты роботу по шине Dynamixel. У v3 с завода ID 1 и скорость 1 Мбит/с, у нас ID 51, поэтому в Task чтение выглядит как <code>custom:w:51:адрес</code>.</p>
 
 <h2>v2 и v3: в чём разница</h2>
 <div class="table-wrap"><table>
@@ -84,6 +84,20 @@
 <h2>Наши доработки сайта камеры v3</h2>
 <p>Сайт настройки v3 открывается в браузере, когда камера подключена по USB (<code>http://192.168.42.1</code>). <b>Интернет для него не нужен</b>: вся страница лежит на самой камере, так что на соревнованиях она тоже работает. Внутри камеры Linux, поэтому сайт можно дорабатывать. Вот что мы поменяли и почему.</p>
 <div class="note"><p><b>Как зайти</b> (по <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_4.html" target="_blank" rel="noopener">инструкции производителя</a>): подключи камеру к ПК кабелем USB Mini-B, дождись, когда зелёный и красный светодиоды начнут мигать по очереди, и открой в браузере <code>http://trackingcam3.local</code> (или <code>http://192.168.42.1</code>). Логин и пароль не нужны. Если страница не открывается: проверь, что в диспетчере устройств появился «Remote NDIS Compatible Device», смени кабель или USB-порт, подай внешнее питание 12 В и выключи VPN, он может уводить локальные адреса.</p></div>
+
+<h3>Администрирование и заводские пароли</h3>
+<p>Кроме сайта настройки, у камеры есть панель администрирования (по <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_3.html" target="_blank" rel="noopener">инструкции производителя</a>):</p>
+<div class="table-wrap"><table>
+<tr><th>что</th><th>адрес</th><th>заводской вход</th></tr>
+<tr><td>сайт настройки</td><td><code>http://trackingcam3.local</code></td><td>без пароля</td></tr>
+<tr><td>администрирование (службы, файлы, терминал, обновление)</td><td><code>http://trackingcam3.local:9999</code></td><td><code>root</code> / <code>12345</code></td></tr>
+<tr><td>Wi-Fi точка камеры</td><td>сеть <code>trackingcam3-xxxxxx</code></td><td>пароль <code>12345678</code></td></tr>
+</table></div>
+<ul>
+  <li><b>Сменить ID и скорость:</b> в администрировании вкладка «Службы» → <code>mcx-tracking-cam</code> → остановить. Потом в Navigator открыть <code>/usr/share/mcx_tracking_cam/config/register.json</code>, в блоке <code>Connection</code> поменять <code>Id</code> и <code>Speed</code>, сохранить и снова запустить службу.</li>
+  <li>Если <code>trackingcam3.local</code> не открывается (так бывает из-за DNS), заходи по IP: по USB это <code>192.168.42.1</code>.</li>
+  <li><b>Смени заводские пароли</b>, особенно от Wi-Fi: на соревнованиях кто угодно рядом может подключиться к камере и сбить настройки.</li>
+</ul>
 
 <h3>Как устроен сайт</h3>
 <ul>
@@ -145,7 +159,7 @@
 
 <div class="en">
 <h1>TrackingCam v2 and v3</h1>
-<p class="lead">The camera finds colour blobs and sends their coordinates to the robot over the Dynamixel bus. Camera ID is usually 51; in Task a read looks like <code>custom:w:51:address</code>.</p>
+<p class="lead">The camera finds colour blobs and sends their coordinates to the robot over the Dynamixel bus. The v3 ships with ID 1 at 1 Mbit/s; ours is set to 51, so in Task a read looks like <code>custom:w:51:address</code>.</p>
 
 <h2>v2 vs v3</h2>
 <div class="table-wrap"><table>
@@ -204,6 +218,20 @@
 <h2>Our upgrades to the v3 camera's web page</h2>
 <p>The v3 setup page opens in a browser when the camera is plugged in over USB (<code>http://192.168.42.1</code>). <b>No internet needed</b>: the whole page lives on the camera, so it works at competitions too. The camera runs Linux, so the page can be modified. Here's what we changed and why.</p>
 <div class="note"><p><b>How to get in</b> (per the <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_4.html" target="_blank" rel="noopener">maker's guide</a>): connect the camera to the PC with a USB Mini-B cable, wait until the green and red LEDs blink in turn, and open <code>http://trackingcam3.local</code> (or <code>http://192.168.42.1</code>). No login or password needed. If it won't open: check that "Remote NDIS Compatible Device" shows up in Device Manager, try another cable or USB port, add external 12 V power, and turn off your VPN, since it can hijack local addresses.</p></div>
+
+<h3>Admin panel and factory passwords</h3>
+<p>Besides the setup page, the camera has an admin panel (per the <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_3.html" target="_blank" rel="noopener">maker's guide</a>):</p>
+<div class="table-wrap"><table>
+<tr><th>what</th><th>address</th><th>factory login</th></tr>
+<tr><td>setup page</td><td><code>http://trackingcam3.local</code></td><td>no password</td></tr>
+<tr><td>admin (services, files, terminal, updates)</td><td><code>http://trackingcam3.local:9999</code></td><td><code>root</code> / <code>12345</code></td></tr>
+<tr><td>camera Wi-Fi hotspot</td><td>network <code>trackingcam3-xxxxxx</code></td><td>password <code>12345678</code></td></tr>
+</table></div>
+<ul>
+  <li><b>Changing ID and speed:</b> in the admin panel go to Services → <code>mcx-tracking-cam</code> → stop it. Then in Navigator open <code>/usr/share/mcx_tracking_cam/config/register.json</code>, change <code>Id</code> and <code>Speed</code> in the <code>Connection</code> block, save and start the service again.</li>
+  <li>If <code>trackingcam3.local</code> won't open (a DNS quirk), use the IP: over USB it's <code>192.168.42.1</code>.</li>
+  <li><b>Change the factory passwords</b>, especially Wi-Fi: at a competition anyone nearby could connect to your camera and mess up its settings.</li>
+</ul>
 
 <h3>How the page works</h3>
 <ul>
