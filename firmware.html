@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Своя прошивка · Bioloid MrDemVer</title>
+<meta name="description" content="Writing your own C firmware for CM-530: toolchain, flashing, Dynamixel.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html" class="active"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main>
+<div class="ru">
+<h1>Своя прошивка CM-530 на C</h1>
+<p class="lead">Вместо RoboPlus Task можно написать прошивку контроллера самому. Тогда скорость, тайм-ауты и логику задаёшь ты, и нет лимита в 50 переменных. Камера у нас стала читаться почти без ошибок, хотя через Task давала <code>-1</code> почти на каждом чтении.</p>
+
+<div class="warn"><p><b>Чем придётся заплатить.</b> Своя прошивка заменяет заводскую, поэтому R+Task-проги на ней не работают, а движения из R+Motion надо проигрывать самому (см. ниже). Обратно на заводскую можно вернуться за пару минут, так что пробовать не страшно.</p></div>
+
+<h2>Зачем это нужно</h2>
+<ul>
+  <li><b>Скорость.</b> Главный цикл крутится так быстро, как напишешь, без скрытых пауз интерпретатора.</li>
+  <li><b>Своя связь с устройствами.</b> Сам решаешь, сколько ждать ответа камеры и что делать при сбое, а не получаешь молчаливое <code>-1</code>.</li>
+  <li><b>Нормальный язык.</b> Массивы, функции с параметрами, сколько угодно переменных, свой проигрыватель движений.</li>
+  <li><b>Минусы:</b> всё, что раньше делала заводская прошивка (движения, пульт, кнопки), придётся писать или переносить самому.</li>
+</ul>
+
+<h2>Что внутри CM-530</h2>
+<ul>
+  <li>Процессор <b>STM32F103RE</b>: Cortex-M3, 72 МГц, 512 КБ флеш, 64 КБ ОЗУ.</li>
+  <li>Шина Dynamixel (серво и камера) — USART1, связь с ПК по USB — USART3.</li>
+  <li><b>Python не встанет:</b> MicroPython не поддерживает семейство F1. Если нужен Python рядом с роботом, это отдельная плата (ESP32, Pico) или камера v3.</li>
+</ul>
+
+<h3>Карта флеша</h3>
+<div class="table-wrap"><table>
+<tr><th>адрес</th><th>что</th></tr>
+<tr><td>0x08000000</td><td>загрузчик, 12 КБ, <b>защищён от записи</b></td></tr>
+<tr><td>0x08003000</td><td>прошивка (заводская или твоя), 128 КБ</td></tr>
+<tr><td>0x08023000</td><td>программа Task, 128 КБ</td></tr>
+<tr><td>0x08043000</td><td>движения .mtnx, 244 КБ</td></tr>
+</table></div>
+<div class="note"><p><b>Окирпичить нельзя:</b> загрузчик защищён. Вернуть заводскую прошивку: RoboPlus Manager → восстановление прошивки (порт выбери вручную, при поиске выключи и включи плату). После этого программу и движения залей заново.</p></div>
+
+<h2>Шаг 1. Что скачать</h2>
+<ol>
+  <li><b>Embedded C SDK для CM-530</b> с сайта ROBOTIS (бесплатно). Внутри 11 готовых примеров: светодиоды, кнопки, связь с ПК, зуммер, микрофон, моторы OLLO, ИК-датчик, чтение и запись Dynamixel, групповая запись (SYNC WRITE), пульт RC-100.</li>
+  <li><b>WinARM 2008 (gcc 4.3.0)</b>, его ROBOTIS даёт к SDK. Это архив: распаковал и пользуешься, ставить не надо, на Windows 11 работает.</li>
+</ol>
+<div class="warn"><p><b>Собирай только WinARM.</b> Современный arm-none-eabi-gcc собирает тот же код без единой ошибки, прошивка заливается, контрольная сумма сходится, и <b>ничего не работает</b>. Мы на этом потеряли вечер. Сборка без ошибок тут ничего не значит. Eclipse не нужен, хватает <code>make</code> из WinARM.</p></div>
+
+<h2>Шаг 2. Устройство проекта</h2>
+<p>Самое простое — скопировать папку примера и править её. В каждом примере одно и то же:</p>
+<pre><code>proj\camera\
+  APP\src\main.c        ← твой код
+  APP\inc\dynamixel.h   ← функции шины Dynamixel
+  stm32f10x_lib\        ← библиотека процессора от ST
+  stm32.ld              ← карта памяти (старт с 0x08003000, уже настроено)
+  Makefile
+  → после сборки: CM530.bin  (его и заливаешь)</code></pre>
+<p>Для сборки хватает маленького bat-файла: добавить WinARM в PATH и вызвать make в папке проекта.</p>
+<pre><code>set PATH=C:\путь\toolchain-winarm\bin;C:\путь\toolchain-winarm\utils\bin;%PATH%
+cd proj\camera
+make</code></pre>
+
+<h2>Шаг 3. Первая прошивка: связь с ПК</h2>
+<p>Возьми пример <b>03 SERIAL COMMUNICATION</b>: он отвечает <code>Welcome!</code> на букву <code>w</code>. Собрал, залил, получил ответ — значит вся цепочка «код → сборка → заливка → работа» замкнута, и дальше можно писать своё.</p>
+<p>В SDK есть печать только в шестнадцатеричном виде (<code>TxDWord16</code>). Для отладки сразу допиши печать обычного числа:</p>
+<pre><code>void TxDDec(u16 v) {
+    char buf[6]; int i = 0;
+    if (v == 0) { TxDByte_PC('0'); return; }
+    while (v &gt; 0) { buf[i++] = '0' + v % 10; v /= 10; }
+    while (i &gt; 0) TxDByte_PC(buf[--i]);
+}</code></pre>
+
+<h2>Шаг 4. Как заливать</h2>
+<ol>
+  <li><b>Войти в загрузчик.</b> Открой COM-порт (57600) и непрерывно шли в него символ <code>#</code>, затем <b>один раз</b> нажми RESET на плате. Ответ: <code>SYSTEM O.K. (CM530 Boot loader …)</code>. Питанием вход не поймать: при выключении USB-порт пропадает из системы.</li>
+  <li>Отправь Enter, потом <code>l</code> + Enter. Загрузчик сотрёт память и ответит <code>Ready..</code>.</li>
+  <li>Отправь файл <b>одним потоком, без пауз</b>: пауза считается концом передачи.</li>
+  <li>В конце дошли <b>ещё один байт: сумму всех байтов файла по модулю 256</b>. Без него запись не проходит (именно поэтому RoboPlus Terminal показывает размер на единицу больше файла).</li>
+  <li>Загрузчик ответит <code>Size: … Checksum: XXXX-XXXX</code>, половины должны совпасть. Команда <code>go</code> запускает прошивку.</li>
+</ol>
+<p>Всё это легко автоматизировать. Скелет на Python (нужен <code>pip install pyserial</code>):</p>
+<pre><code>import serial, time
+data = open("CM530.bin", "rb").read()
+s = serial.Serial("COM3", 57600, timeout=0.05)
+
+print("Нажми RESET на плате...")
+buf = b""
+while b"SYSTEM O.K." not in buf:      # сыплем # и ловим загрузчик
+    s.write(b"#"); time.sleep(0.04)
+    buf += s.read(200)
+time.sleep(0.5); s.read(1000)
+
+s.write(b"\r"); time.sleep(0.2)
+s.write(b"l\r")                       # стереть и ждать файл
+while b"Ready" not in s.read(200): pass
+
+s.write(data + bytes([sum(data) % 256]))   # файл + байт суммы, без пауз
+time.sleep(1); print(s.read(500).decode(errors="ignore"))
+s.write(b"go\r")                      # запустить</code></pre>
+<p><b>Лайфхак:</b> вставь в прошивку команду, которая по символу с ПК сама перезагружает плату (<code>NVIC_GenerateSystemReset()</code>). Скрипт заливки сначала шлёт этот символ, и RESET жать больше не нужно. Вставляй её в каждую свою прошивку.</p>
+
+<h2>Шаг 5. Шина Dynamixel: серво и камера</h2>
+<p>Функции из <code>dynamixel.h</code> в SDK:</p>
+<div class="table-wrap"><table>
+<tr><th>функция</th><th>что делает</th></tr>
+<tr><td><code>dxl_initialize(0, 1)</code></td><td>поднять шину (1 = 1 Мбит/с, как у AX-12)</td></tr>
+<tr><td><code>dxl_ping(id)</code></td><td>проверить, отвечает ли устройство</td></tr>
+<tr><td><code>dxl_read_byte / dxl_read_word(id, адрес)</code></td><td>прочитать 1 или 2 байта</td></tr>
+<tr><td><code>dxl_write_byte / dxl_write_word(id, адрес, значение)</code></td><td>записать</td></tr>
+<tr><td><code>dxl_get_result()</code></td><td>удалось ли последнее чтение. Проверяй всегда</td></tr>
+</table></div>
+<p>Так наша прошивка читает камеру (кусок настоящего кода):</p>
+<pre><code>dxl_initialize(0, 1);
+while (1) {
+    cx   = dxl_read_word(51, 18);  st1 = dxl_get_result();
+    cy   = dxl_read_word(51, 20);  st2 = dxl_get_result();
+    area = dxl_read_word(51, 22);  st3 = dxl_get_result();
+    if (st1 == COMM_RXSUCCESS &amp;&amp; st2 == COMM_RXSUCCESS &amp;&amp; st3 == COMM_RXSUCCESS) {
+        TxDDec(cx); TxDString("  "); TxDDec(cy); TxDString("\r\n");
+    } else {
+        TxDString("net otveta\r\n");    // честно видим сбой, а не -1
+    }
+}</code></pre>
+<p>Результат: 24 замера подряд без единой ошибки, при движении мяча около 4% сбоев. Через Task на той же камере сбой был почти на каждом чтении.</p>
+
+<h3>Все 18 серво одним пакетом (SYNC WRITE)</h3>
+<pre><code>dxl_set_txpacket_id(BROADCAST_ID);
+dxl_set_txpacket_instruction(INST_SYNC_WRITE);
+dxl_set_txpacket_parameter(0, 30);          // адрес цели (Goal Position)
+dxl_set_txpacket_parameter(1, 2);           // по 2 байта на серво
+for (i = 0; i &lt; 18; i++) {
+    dxl_set_txpacket_parameter(2 + 3*i,     i + 1);               // ID
+    dxl_set_txpacket_parameter(2 + 3*i + 1, dxl_get_lowbyte(pos[i]));
+    dxl_set_txpacket_parameter(2 + 3*i + 2, dxl_get_highbyte(pos[i]));
+}
+dxl_set_txpacket_length(3*18 + 4);
+dxl_tx_packet();      // НЕ dxl_txrx_packet: ответа на SYNC WRITE не бывает</code></pre>
+
+<h2>Шаг 6. Движения из .mtnx</h2>
+<p>Проигрывать свои движения можно, и это работает на роботе. Схема:</p>
+<ol>
+  <li>Скрипт на ПК читает .mtnx (это XML, см. <a href="motion.html">Motion</a>) и пишет таблицы на C: время каждого шага и 18 углов.</li>
+  <li>Углы переводятся в деления AX-12: <code>pos = 512 + градусы × 1023 / 300</code>.</li>
+  <li>Прошивка каждые ~8 мс считает промежуточную позу между двумя шагами (линейная интерполяция) и отправляет её одним SYNC WRITE.</li>
+</ol>
+<pre><code>// между позой A и позой B за N тактов по 8 мс
+for (t = 1; t &lt;= N; t++) {
+    for (j = 0; j &lt; 18; j++)
+        pos[j] = A[j] + (B[j] - A[j]) * t / N;
+    sync_write(pos);
+    wait_ms(8);
+}</code></pre>
+<p>Перед первым движением включи момент всем серво (<code>dxl_write_byte(BROADCAST_ID, 24, 1)</code>) и плавно, медленно выведи робота в первую позу. Иначе он дёрнется в неё со всей силы.</p>
+
+<h2>Как устроить главный цикл</h2>
+<p>Те же правила, что в Task, только теперь их соблюдаешь ты сам:</p>
+<ul>
+  <li><b>Никаких долгих ожиданий в главном цикле.</b> Засекай время и проверяй его на каждом проходе.</li>
+  <li>Камеру и серво опрашивай с разумной частотой, а не на каждом проходе: шина общая, и движения начнут дёргаться.</li>
+  <li>Движение — это «состояние»: цикл каждые 8 мс двигает его на шаг дальше, а между шагами успевает прочитать камеру и гиро. Так робот видит мяч прямо на ходу.</li>
+</ul>
+<pre><code>while (1) {
+    if (now() - t_motion &gt;= 8)   { t_motion = now();  motion_step(); }   // движение
+    if (now() - t_camera &gt;= 40)  { t_camera = now();  read_camera(); }   // камера
+    if (now() - t_gyro   &gt;= 20)  { t_gyro   = now();  read_gyro();   }   // гиро
+    decide();                                                            // логика
+}</code></pre>
+
+<h2>Грабли, на которые мы наступили</h2>
+<ul>
+  <li>Сборка современным GCC: всё выглядит нормально, но ничего не работает (см. шаг 1).</li>
+  <li><b>SYNC WRITE с ожиданием ответа</b> (<code>dxl_txrx_packet</code>): каждый такт упирается в тайм-аут, движения идут рывками и в 5 раз дольше.</li>
+  <li>Чтение с ПК через библиотечную функцию у нас не заработало. Рабочий вариант — прямо по регистрам: ждать флаг RXNE (<code>USART3-&gt;SR &amp; 0x20</code>), а при переполнении (<code>&amp; 0x08</code>) прочитать <code>DR</code>, иначе приём залипает.</li>
+  <li>Если снял момент с серво (регистр 24 = 0), запись новой позиции его <b>не</b> возвращает: робот остаётся мягким.</li>
+  <li>Прежде чем опрашивать все 18 серво, опроси одно. Не ответило — остальные не трогай, иначе 18 тайм-аутов подряд.</li>
+  <li>Приветствие прошивка печатает один раз при старте. Подключился к порту позже — плата кажется мёртвой, хотя всё работает.</li>
+  <li>RoboPlus Terminal не показывает то, что ты набираешь, только ответ платы. Это нормально.</li>
+  <li>Когда выпускаешь новую версию, сохраняй рабочий .bin с понятным именем и датой. Откатиться на рабочую версию перед соревнованиями — бесценно.</li>
+</ul>
+</div>
+
+<div class="en">
+<h1>Custom CM-530 firmware in C</h1>
+<p class="lead">Instead of RoboPlus Task you can write the controller firmware yourself. Then you control speed, timeouts and logic, and there's no 50-variable limit. Our camera now reads almost error-free, while through Task it returned <code>-1</code> on almost every read.</p>
+
+<div class="warn"><p><b>The price.</b> Your firmware replaces the stock one, so R+Task programs won't run on it, and you have to play R+Motion motions yourself (see below). Going back to stock takes a couple of minutes, so it's safe to try.</p></div>
+
+<h2>Why bother</h2>
+<ul>
+  <li><b>Speed.</b> The main loop runs as fast as you write it, with no hidden interpreter pauses.</li>
+  <li><b>Your own device communication.</b> You decide how long to wait for the camera and what to do on a failure, instead of getting a silent <code>-1</code>.</li>
+  <li><b>A real language.</b> Arrays, functions with parameters, as many variables as you like, your own motion player.</li>
+  <li><b>Downside:</b> everything the stock firmware did (motions, remote, buttons) you have to write or port yourself.</li>
+</ul>
+
+<h2>What's inside the CM-530</h2>
+<ul>
+  <li><b>STM32F103RE</b>: Cortex-M3, 72 MHz, 512 KB flash, 64 KB RAM.</li>
+  <li>Dynamixel bus (servos and camera) = USART1, USB link to PC = USART3.</li>
+  <li><b>No Python:</b> MicroPython doesn't support the F1 family. Want Python near the robot? Use a separate board (ESP32, Pico) or the v3 camera.</li>
+</ul>
+
+<h3>Flash map</h3>
+<div class="table-wrap"><table>
+<tr><th>address</th><th>what</th></tr>
+<tr><td>0x08000000</td><td>bootloader, 12 KB, <b>write-protected</b></td></tr>
+<tr><td>0x08003000</td><td>firmware (stock or yours), 128 KB</td></tr>
+<tr><td>0x08023000</td><td>Task program, 128 KB</td></tr>
+<tr><td>0x08043000</td><td>.mtnx motions, 244 KB</td></tr>
+</table></div>
+<div class="note"><p><b>You can't brick it:</b> the bootloader is protected. To restore stock firmware: RoboPlus Manager → firmware recovery (pick the port manually, power-cycle the board while it searches). Then re-upload your program and motions.</p></div>
+
+<h2>Step 1. What to download</h2>
+<ol>
+  <li><b>Embedded C SDK for CM-530</b> from ROBOTIS (free). It has 11 ready examples: LEDs, buttons, PC serial, buzzer, mic, OLLO motors, IR sensor, Dynamixel read/write, sync write, RC-100 remote.</li>
+  <li><b>WinARM 2008 (gcc 4.3.0)</b>, provided by ROBOTIS with the SDK. It's an archive: unpack and use, no install, works on Windows 11.</li>
+</ol>
+<div class="warn"><p><b>Build only with WinARM.</b> A modern arm-none-eabi-gcc builds the same code with zero errors, it flashes, the checksum matches, and <b>nothing runs</b>. That cost us an evening. A clean build means nothing here. No Eclipse needed, WinARM's <code>make</code> is enough.</p></div>
+
+<h2>Step 2. Project layout</h2>
+<p>Easiest: copy an example folder and edit it. Every example looks the same:</p>
+<pre><code>proj\camera\
+  APP\src\main.c        ← your code
+  APP\inc\dynamixel.h   ← Dynamixel bus functions
+  stm32f10x_lib\        ← ST processor library
+  stm32.ld              ← memory map (starts at 0x08003000, already set)
+  Makefile
+  → after build: CM530.bin  (this is what you upload)</code></pre>
+<p>A tiny bat file is enough to build: add WinARM to PATH and run make in the project folder.</p>
+<pre><code>set PATH=C:\path\toolchain-winarm\bin;C:\path\toolchain-winarm\utils\bin;%PATH%
+cd proj\camera
+make</code></pre>
+
+<h2>Step 3. First firmware: talk to the PC</h2>
+<p>Take example <b>03 SERIAL COMMUNICATION</b>: it answers <code>Welcome!</code> to the letter <code>w</code>. Built, uploaded, got the reply? The whole chain "code → build → upload → run" works, and you can start writing your own.</p>
+<p>The SDK only prints hex (<code>TxDWord16</code>). Add normal decimal printing for debugging right away:</p>
+<pre><code>void TxDDec(u16 v) {
+    char buf[6]; int i = 0;
+    if (v == 0) { TxDByte_PC('0'); return; }
+    while (v &gt; 0) { buf[i++] = '0' + v % 10; v /= 10; }
+    while (i &gt; 0) TxDByte_PC(buf[--i]);
+}</code></pre>
+
+<h2>Step 4. Uploading</h2>
+<ol>
+  <li><b>Enter the bootloader.</b> Open the COM port (57600), keep sending <code>#</code>, and press RESET <b>once</b>. Reply: <code>SYSTEM O.K. (CM530 Boot loader …)</code>. Power-cycling won't work: the USB port disappears when power is off.</li>
+  <li>Send Enter, then <code>l</code> + Enter. It erases and replies <code>Ready..</code>.</li>
+  <li>Send the file <b>in one stream, no pauses</b>: a pause counts as end of transfer.</li>
+  <li>At the end send <b>one extra byte: the sum of all file bytes mod 256</b>. Without it the write fails (that's why RoboPlus Terminal shows a size one byte larger than the file).</li>
+  <li>Reply: <code>Size: … Checksum: XXXX-XXXX</code>; both halves must match. <code>go</code> starts the firmware.</li>
+</ol>
+<p>Easy to automate. A Python skeleton (needs <code>pip install pyserial</code>):</p>
+<pre><code>import serial, time
+data = open("CM530.bin", "rb").read()
+s = serial.Serial("COM3", 57600, timeout=0.05)
+
+print("Press RESET on the board...")
+buf = b""
+while b"SYSTEM O.K." not in buf:      # spam # and catch the bootloader
+    s.write(b"#"); time.sleep(0.04)
+    buf += s.read(200)
+time.sleep(0.5); s.read(1000)
+
+s.write(b"\r"); time.sleep(0.2)
+s.write(b"l\r")                       # erase and wait for the file
+while b"Ready" not in s.read(200): pass
+
+s.write(data + bytes([sum(data) % 256]))   # file + checksum byte, no pauses
+time.sleep(1); print(s.read(500).decode(errors="ignore"))
+s.write(b"go\r")                      # run</code></pre>
+<p><b>Tip:</b> add a command that resets the board on a character from the PC (<code>NVIC_GenerateSystemReset()</code>). The upload script sends it first, and you never press RESET again. Put it in every firmware you make.</p>
+
+<h2>Step 5. The Dynamixel bus: servos and camera</h2>
+<p>Functions from the SDK's <code>dynamixel.h</code>:</p>
+<div class="table-wrap"><table>
+<tr><th>function</th><th>what it does</th></tr>
+<tr><td><code>dxl_initialize(0, 1)</code></td><td>start the bus (1 = 1 Mbps, like AX-12)</td></tr>
+<tr><td><code>dxl_ping(id)</code></td><td>check whether a device answers</td></tr>
+<tr><td><code>dxl_read_byte / dxl_read_word(id, addr)</code></td><td>read 1 or 2 bytes</td></tr>
+<tr><td><code>dxl_write_byte / dxl_write_word(id, addr, value)</code></td><td>write</td></tr>
+<tr><td><code>dxl_get_result()</code></td><td>whether the last read worked. Always check it</td></tr>
+</table></div>
+<p>This is how our firmware reads the camera (real code, trimmed):</p>
+<pre><code>dxl_initialize(0, 1);
+while (1) {
+    cx   = dxl_read_word(51, 18);  st1 = dxl_get_result();
+    cy   = dxl_read_word(51, 20);  st2 = dxl_get_result();
+    area = dxl_read_word(51, 22);  st3 = dxl_get_result();
+    if (st1 == COMM_RXSUCCESS &amp;&amp; st2 == COMM_RXSUCCESS &amp;&amp; st3 == COMM_RXSUCCESS) {
+        TxDDec(cx); TxDString("  "); TxDDec(cy); TxDString("\r\n");
+    } else {
+        TxDString("no answer\r\n");    // see the failure honestly, not -1
+    }
+}</code></pre>
+<p>Result: 24 reads in a row with zero errors, about 4% failures with a moving ball. Through Task, the same camera failed on almost every read.</p>
+
+<h3>All 18 servos in one packet (SYNC WRITE)</h3>
+<pre><code>dxl_set_txpacket_id(BROADCAST_ID);
+dxl_set_txpacket_instruction(INST_SYNC_WRITE);
+dxl_set_txpacket_parameter(0, 30);          // Goal Position address
+dxl_set_txpacket_parameter(1, 2);           // 2 bytes per servo
+for (i = 0; i &lt; 18; i++) {
+    dxl_set_txpacket_parameter(2 + 3*i,     i + 1);               // ID
+    dxl_set_txpacket_parameter(2 + 3*i + 1, dxl_get_lowbyte(pos[i]));
+    dxl_set_txpacket_parameter(2 + 3*i + 2, dxl_get_highbyte(pos[i]));
+}
+dxl_set_txpacket_length(3*18 + 4);
+dxl_tx_packet();      // NOT dxl_txrx_packet: SYNC WRITE never replies</code></pre>
+
+<h2>Step 6. Motions from .mtnx</h2>
+<p>You can play your own motions, and it works on the robot. The plan:</p>
+<ol>
+  <li>A PC script reads the .mtnx (it's XML, see <a href="motion.html">Motion</a>) and writes C tables: each step's time and 18 angles.</li>
+  <li>Angles become AX-12 units: <code>pos = 512 + degrees × 1023 / 300</code>.</li>
+  <li>Every ~8 ms the firmware computes the in-between pose of two steps (linear interpolation) and sends it in one SYNC WRITE.</li>
+</ol>
+<pre><code>// from pose A to pose B in N ticks of 8 ms
+for (t = 1; t &lt;= N; t++) {
+    for (j = 0; j &lt; 18; j++)
+        pos[j] = A[j] + (B[j] - A[j]) * t / N;
+    sync_write(pos);
+    wait_ms(8);
+}</code></pre>
+<p>Before the first motion, enable torque on all servos (<code>dxl_write_byte(BROADCAST_ID, 24, 1)</code>) and move the robot slowly into the first pose. Otherwise it snaps into it at full force.</p>
+
+<h2>Structuring the main loop</h2>
+<p>Same rules as in Task, except now you enforce them:</p>
+<ul>
+  <li><b>No long waits in the main loop.</b> Record a time and check it each pass.</li>
+  <li>Poll the camera and servos at a sensible rate, not every pass: the bus is shared and motions will start to stutter.</li>
+  <li>A motion is a "state": every 8 ms the loop advances it one tick, and in between it has time to read the camera and gyro. That's how the robot sees the ball while walking.</li>
+</ul>
+<pre><code>while (1) {
+    if (now() - t_motion &gt;= 8)   { t_motion = now();  motion_step(); }   // motion
+    if (now() - t_camera &gt;= 40)  { t_camera = now();  read_camera(); }   // camera
+    if (now() - t_gyro   &gt;= 20)  { t_gyro   = now();  read_gyro();   }   // gyro
+    decide();                                                            // logic
+}</code></pre>
+
+<h2>Traps we hit</h2>
+<ul>
+  <li>Building with modern GCC: everything looks fine, nothing runs (see step 1).</li>
+  <li><b>SYNC WRITE waiting for a reply</b> (<code>dxl_txrx_packet</code>): every tick hits a timeout, motions stutter and take 5× longer.</li>
+  <li>Reading from the PC via the library function didn't work for us. Working way: poll registers directly, wait for RXNE (<code>USART3-&gt;SR &amp; 0x20</code>), and on overrun (<code>&amp; 0x08</code>) read <code>DR</code>, or reception locks up.</li>
+  <li>After disabling torque (register 24 = 0), writing a goal position does <b>not</b> re-enable it: the robot stays limp.</li>
+  <li>Before polling all 18 servos, ping one. No reply? Skip the rest, or you get 18 timeouts in a row.</li>
+  <li>The firmware prints its greeting once at boot. Connect later and the board looks dead, though it's fine.</li>
+  <li>RoboPlus Terminal doesn't echo what you type, only the board's replies. That's normal.</li>
+  <li>Save every working .bin with a clear name and date. Rolling back to a known-good build before a competition is priceless.</li>
+</ul>
+</div>
+
+<div class="pager"><a href="camera.html">← <span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span> →</a></div>
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

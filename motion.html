@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R+Motion · Bioloid MrDemVer</title>
+<meta name="description" content="How .mtnx motion files work: page numbers, frames, mirroring.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html" class="active"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main>
+<div class="ru">
+<h1>R+Motion: как устроен .mtnx</h1>
+<p class="lead">Файл движений — это обычный XML. Если понимать его устройство, можно читать и чинить движения без угадывания.</p>
+
+<h2>Вкладка F1: проект и модель робота</h2>
+<figure class="shot">
+  <img src="img/motion_f1.jpg" width="1400" height="1047" alt="Вкладка F1 R+Motion 2.0" loading="lazy">
+  <figcaption>Главная: файл проекта и список суставов</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>New, Open, Close Project</b> — создать, открыть, закрыть файл движений.</li>
+  <li><b>Save / Save As</b> — сохранить. Перед большими правками делай «Save As» с датой в имени: если всё сломаешь, откатишься.</li>
+  <li><b>Import</b> — взять движения из другого файла (неактивна, пока нечего импортировать).</li>
+  <li><b>3D Robot</b> — модель и список суставов (открыто на скрине).</li>
+  <li><b>Edit Offset</b> — поправки нулей серво. Если в одной и той же позе твой робот стоит криво, а модель ровно, правь смещение тут один раз, а не в каждой странице.</li>
+  <li>Настройки программы, справка, обновление, выход.</li>
+  <li><b>3D-модель с номерами ID.</b> Самый быстрый способ узнать, какой ID у какого сустава.</li>
+  <li><b>Joint List:</b> ID, тип серво (у Bioloid AX-12A) и Enable — участвует ли сустав в движениях.</li>
+</ol>
+
+<h2>Вкладка F2: редактор страниц</h2>
+<figure class="shot">
+  <img src="img/motion.jpg" width="1400" height="1047" alt="Окно R+Motion 2.0 с пронумерованными кнопками" loading="lazy">
+  <figcaption>Страница «2 Bravo», кадр 112 = 875 мс</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Вкладки.</b> F1 — главная (открыть или создать файл), F2 — редактор страниц (основная работа тут), F3 — юниты и порядок страниц, F4 — залить движения в контроллер.</li>
+  <li><b>Выбор страницы.</b> Какое движение сейчас редактируешь.</li>
+  <li><b>Пуск</b> страницы на 3D-модели (или на роботе, если включён Sync, см. 16). «!» — аварийный стоп.</li>
+  <li><b>Frame / Time</b> — где стоит курсор: номер кадра и время в мс. 112 кадров = 875 мс, то есть 1 frame ≈ 7.8 мс.</li>
+  <li><b>Настройки</b> страницы: скорость, повторы, следующая страница.</li>
+  <li><b>Масштаб</b> шкалы времени.</li>
+  <li><b>+ / −</b> — добавить шаг (позу) в текущее место шкалы или удалить выбранный.</li>
+  <li><b>Шкала времени.</b> Красная линия — текущий момент, шаги стоят на ней отметками. Перетаскивай шаг, чтобы движение шло быстрее или медленнее.</li>
+  <li><b>Robot Pose</b> — углы всех 18 серво в градусах. «3D Robot» — поза в редакторе, «Real Robot» — что сейчас на живом роботе (знаки «?» означают, что робот не подключён).</li>
+  <li><b>Перенос позы.</b> Верхняя кнопка (3D → робот) отправляет позу на робота, нижняя (робот → 3D) считывает позу с робота в редактор.</li>
+  <li><b>Момент серво.</b> Горящая лампочка — серво держат, погасшая — серво мягкие, их можно крутить руками.</li>
+  <li><b>Клик по суставу</b> на 3D-модели: левая кнопка мыши крутит против часовой, правая — по часовой.</li>
+  <li><b>Группы суставов.</b> None — ничего не выбрано, All — все. Кнопками +/− делаешь свои группы (например, «левая нога»), чтобы двигать их разом.</li>
+  <li><b>Точная установка</b> выбранного сустава: колесо или число в градусах. MAX, CTR и MIN — край, центр и другой край.</li>
+  <li><b>Mirroring</b> — зеркалит позу (левое ↔ правое) по правилу из раздела ниже.</li>
+  <li><b>Connect</b> (F10) — подключиться к роботу через COM-порт. <b>Sync Mode</b> (F9) — всё, что меняешь в 3D, сразу повторяет живой робот. Осторожно, робот резко дёрнется в новую позу.</li>
+  <li><b>Сохранить</b> файл .mtnx.</li>
+  <li><b>Вид 3D-модели</b> — повернуть камеру и сбросить вид.</li>
+</ol>
+<div class="note"><p><b>Как удобнее всего делать позу:</b> подключи робота (16), сними момент (11), выстави позу руками, считай её в редактор (10, нижняя кнопка), добавь шаг (7). Так в 5 раз быстрее, чем крутить каждый сустав мышкой. Перед тем как снимать момент, держи робота: он сразу обмякнет.</p></div>
+
+<h2>Вкладка F3: юниты (из каких страниц состоит движение)</h2>
+<p>Страница — это одно движение из шагов. <b>Юнит</b> — это то, что реально вызывает Task: цепочка страниц с повторами, скоростью и страницей выхода.</p>
+<figure class="shot">
+  <img src="img/motion_unit.jpg" width="1400" height="1047" alt="Вкладка юнитов R+Motion 2.0" loading="lazy">
+  <figcaption>Юнит «28 F_Shoot_R» играет страницу «35 F_Shoot_R» один раз на скорости ×1.5</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Выбор юнита.</b> Имя юнита и имя страницы внутри могут не совпадать (здесь 28 и 35), поэтому номера по именам и путаются.</li>
+  <li><b>Пуск, стоп и «!».</b> Проиграть юнит целиком, остановить. «!» — аварийный стоп.</li>
+  <li><b>+ / −</b> — добавить страницу в цепочку или убрать её.</li>
+  <li><b>Плитка страницы.</b> Галочка — шаг включён, <code>⟲1</code> — сколько раз повторить, <code>×1.5</code> — скорость (больше = быстрее), ниже имя страницы.</li>
+  <li><b>Стрелка «дальше»</b> — какая страница играет следующей.</li>
+  <li><b>Нижняя стрелка — страница выхода.</b> Её доигрывает <code>motion:-:50 = 0</code> при остановке. У сильного удара тут стоит его вторая страница (см. ниже).</li>
+  <li><b>Зацикливание.</b> Юнит крутится, пока его не остановят: так устроена ходьба. Если случайно зациклил стойку, Task не сможет запустить ничего другого.</li>
+  <li><b>Expected total play time</b> — сколько секунд займёт юнит. По этому числу ставь паузу в Task, чтобы не оборвать движение (подъёмы длятся 4–10 с).</li>
+</ol>
+<div class="note"><p><b>Ускорить движение без перестановки шагов:</b> подними скорость в плитке (4), например ×1.2. Для удара это удобнее, чем двигать каждый шаг на шкале.</p></div>
+
+<h2>Вкладка F4: заливка в робота и настоящие номера</h2>
+<figure class="shot">
+  <img src="img/motion_f4.jpg" width="1400" height="1047" alt="Вкладка F4 R+Motion 2.0" loading="lazy">
+  <figcaption>Здесь видно, почему номер для Task не равен числу в имени</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Motion Group List</b> — наборы движений для заливки. Обычно хватает одного.</li>
+  <li>Добавить, удалить, переименовать, скопировать группу.</li>
+  <li><b>Index — номер, который пишешь в Task</b> (<code>motion:-:50 = Index</code>). В файле .mtnx он лежит как <code>callIndex</code>.</li>
+  <li><b>Motion Name</b> — имя юнита.</li>
+  <li><b>Exit Index</b> — страница выхода юнита.</li>
+  <li><b>Пустые строки со стрелкой</b> — это продолжение юнита. «3 F_R_S» занимает индексы 3, 4 и 5, поэтому следующий «4 F_L_S» получает уже 6, а «5 F_R_E» — 9. Из-за этого номера и уезжают от имён.</li>
+  <li>Сколько памяти контроллера под движения занято.</li>
+  <li><b>Download Motion Group</b> (F6) — залить в контроллер. Робот должен быть подключён (Connect).</li>
+</ol>
+<div class="note"><p><b>Главное правило:</b> не знаешь, какой номер писать в Task, — открой F4 и посмотри Index. Подбирать номер на роботе методом тыка не нужно.</p></div>
+
+<h2>1. Номер страницы ≠ число в имени</h2>
+<p>В Task ты пишешь <code>motion:-:50 = N</code>, но N — это <b>не</b> число из имени страницы («36 F_Shoot_R»). Настоящий номер лежит в конце файла:</p>
+<pre><code>&lt;callFlow callIndex="37" subIndex="0" exitIndex="0" flow="36 F_Shoot_R" /&gt;</code></pre>
+<p><code>callIndex</code> — номер для Task, <code>flow</code> — имя в редакторе. Из-за пропусков в нумерации они расходятся, иногда сильно. Прежде чем подбирать номер на роботе методом тыка, найди в файле поиском <code>callFlow</code>, это займёт секунду.</p>
+
+<h2>2. Страница → поза → кадр</h2>
+<pre><code>&lt;Page name="1 Init"&gt;
+  &lt;step frame="125" pose="-81.15 80.86 ..." /&gt;
+&lt;/Page&gt;</code></pre>
+<ul>
+  <li><code>pose</code> — 18 углов <b>в градусах</b>, по порядку для серво ID 1…18.</li>
+  <li>Перевод в деления AX-12: <code>pos = 512 + градусы × 1023 / 300</code>.</li>
+  <li><code>frame</code> в наших файлах всегда растёт внутри страницы (9, 18, 30…), поэтому это <b>время от начала страницы</b>, а длительность кадра равна разности соседних. Если собираешь страницу скриптом, пиши frame нарастающим итогом. Когда мы записали «время назад» (14, 50, 90, 30…), контроллер проглотил кадры мгновенно.</li>
+</ul>
+
+<h2>3. Зеркало движения (правое ↔ левое)</h2>
+<p>Чтобы сделать удар левой из удара правой, бери пары суставов и меняй их так:</p>
+<pre><code>(a, b) → (−b, −a)</code></pre>
+<p>Времена кадров не трогаешь. У нас правый сильный удар отличался от зеркала левого на 5.5° и ронял робота. После точного зеркала стал стоять так же, как левый.</p>
+
+<h2>4. Удар из двух страниц</h2>
+<p>Сильный удар — это сама страница <b>плюс её страница выхода</b>. Пара указана в юните:</p>
+<pre><code>&lt;unit main="..." exit="..." /&gt;</code></pre>
+<p>Зеркалишь или правишь удар, значит правь обе страницы, иначе после удара робот уходит в чужую позу.</p>
+
+<h2>5. Ходьба — карусель страниц</h2>
+<p>Ходьба вперёд — это цепочка «шаг правой → шаг левой → …» с отдельными страницами входа и выхода. Поэтому стоп через <code>motion:-:50 = 0</code> сначала доигрывает выход и только потом встаёт (см. <a href="task.html">Task</a>).</p>
+
+<div class="note"><p><b>Совет.</b> Меняешь колени (например, ставишь робота «ниже»), пересчитай и голеностоп. Иначе центр масс уезжает, и робот валится вперёд или назад на всех движениях сразу.</p></div>
+</div>
+
+<div class="en">
+<h1>R+Motion: how .mtnx works</h1>
+<p class="lead">A motion file is plain XML. Once you know its structure you can read and fix motions instead of guessing.</p>
+
+<h2>Tab F1: project and robot model</h2>
+<figure class="shot">
+  <img src="img/motion_f1.jpg" width="1400" height="1047" alt="R+Motion 2.0 tab F1" loading="lazy">
+  <figcaption>Home: project file and joint list</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>New, Open, Close Project</b> create, open, close a motion file.</li>
+  <li><b>Save / Save As.</b> Before big edits, "Save As" with the date in the name so you can roll back.</li>
+  <li><b>Import</b> takes motions from another file (greyed out when there's nothing to import).</li>
+  <li><b>3D Robot</b> shows the model and joint list (open in the screenshot).</li>
+  <li><b>Edit Offset</b> sets servo zero corrections. If your robot stands crooked in a pose where the model is straight, fix the offset here once instead of in every page.</li>
+  <li>Program settings, help, update, exit.</li>
+  <li><b>3D model with ID numbers.</b> The fastest way to see which ID is which joint.</li>
+  <li><b>Joint List:</b> ID, servo type (AX-12A on Bioloid) and Enable = whether the joint takes part in motions.</li>
+</ol>
+
+<h2>Tab F2: page editor</h2>
+<figure class="shot">
+  <img src="img/motion.jpg" width="1400" height="1047" alt="R+Motion 2.0 window with numbered buttons" loading="lazy">
+  <figcaption>Page "2 Bravo", frame 112 = 875 ms</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Tabs.</b> F1 home (open or create a file), F2 page editor (main work happens here), F3 units and page order, F4 download motions to the controller.</li>
+  <li><b>Page selector.</b> Which motion you're editing.</li>
+  <li><b>Play</b> the page on the 3D model (or the robot, if Sync is on, see 16). "!" is the emergency stop.</li>
+  <li><b>Frame / Time</b> at the cursor. 112 frames = 875 ms, so 1 frame ≈ 7.8 ms.</li>
+  <li><b>Page settings:</b> speed, repeats, next page.</li>
+  <li><b>Zoom</b> the timeline.</li>
+  <li><b>+ / −</b> adds a step (pose) at the cursor or deletes the selected one.</li>
+  <li><b>Timeline.</b> The red line is the current moment, steps are marks on it. Drag a step to make the motion faster or slower.</li>
+  <li><b>Robot Pose</b> lists all 18 servo angles in degrees. "3D Robot" = editor pose, "Real Robot" = live robot ("?" = not connected).</li>
+  <li><b>Pose transfer.</b> Top button (3D → robot) sends the pose to the robot, bottom (robot → 3D) reads the robot's pose into the editor.</li>
+  <li><b>Servo torque.</b> Lit bulb = servos hold, dark bulb = servos go limp and you can move them by hand.</li>
+  <li><b>Click a joint</b> on the 3D model: left mouse button turns it counter-clockwise, right button clockwise.</li>
+  <li><b>Joint groups.</b> None selects nothing, All selects everything. Make your own groups with +/− (e.g. "left leg") to move them together.</li>
+  <li><b>Precise control</b> for the selected joint: dial or value in degrees. MAX, CTR and MIN are one limit, centre and the other limit.</li>
+  <li><b>Mirroring</b> copies the pose left ↔ right using the rule below.</li>
+  <li><b>Connect</b> (F10) connects to the robot over COM. <b>Sync Mode</b> (F9) makes the live robot follow every change in 3D. Careful: the robot jumps into the new pose.</li>
+  <li><b>Save</b> the .mtnx file.</li>
+  <li><b>3D view:</b> rotate the camera and reset the view.</li>
+</ol>
+<div class="note"><p><b>Fastest way to make a pose:</b> connect (16), turn torque off (11), pose the robot by hand, read it into the editor (10, bottom button), add a step (7). Five times faster than turning each joint with the mouse. Hold the robot before turning torque off: it goes limp at once.</p></div>
+
+<h2>Tab F3: units (which pages a motion is made of)</h2>
+<p>A page is one motion made of steps. A <b>unit</b> is what Task actually calls: a chain of pages with repeats, speed and an exit page.</p>
+<figure class="shot">
+  <img src="img/motion_unit.jpg" width="1400" height="1047" alt="R+Motion 2.0 units tab" loading="lazy">
+  <figcaption>Unit "28 F_Shoot_R" plays page "35 F_Shoot_R" once at ×1.5 speed</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Unit selector.</b> The unit name and the page inside can differ (28 vs 35 here), which is why numbers get confusing.</li>
+  <li><b>Play, stop and "!".</b> Play the whole unit, stop. "!" is the emergency stop.</li>
+  <li><b>+ / −</b> adds a page to the chain or removes it.</li>
+  <li><b>Page tile.</b> Checkbox = step enabled, <code>⟲1</code> = repeat count, <code>×1.5</code> = speed (higher = faster), page name below.</li>
+  <li><b>"Next" arrow</b> = which page plays next.</li>
+  <li><b>Bottom arrow = exit page.</b> <code>motion:-:50 = 0</code> plays it when stopping. For a power kick this is its second page (see below).</li>
+  <li><b>Loop.</b> The unit repeats until stopped, which is how walking works. Accidentally loop the stance and Task can't start anything else.</li>
+  <li><b>Expected total play time</b> = unit length in seconds. Use it for the wait in Task so you don't cut a motion short (get-ups take 4–10 s).</li>
+</ol>
+<div class="note"><p><b>Speed up a motion without moving steps:</b> raise the tile speed (4), e.g. ×1.2. Easier than dragging every step on the timeline.</p></div>
+
+<h2>Tab F4: download and the real numbers</h2>
+<figure class="shot">
+  <img src="img/motion_f4.jpg" width="1400" height="1047" alt="R+Motion 2.0 tab F4" loading="lazy">
+  <figcaption>This is why the Task number isn't the number in the name</figcaption>
+</figure>
+<ol class="legend">
+  <li><b>Motion Group List</b> = sets of motions to download. One is usually enough.</li>
+  <li>Add, delete, rename, copy a group.</li>
+  <li><b>Index = the number you use in Task</b> (<code>motion:-:50 = Index</code>). In the .mtnx file it's <code>callIndex</code>.</li>
+  <li><b>Motion Name</b> = unit name.</li>
+  <li><b>Exit Index</b> = the unit's exit page.</li>
+  <li><b>Empty rows with an arrow</b> continue the unit above. "3 F_R_S" takes indexes 3, 4 and 5, so the next one, "4 F_L_S", gets 6, and "5 F_R_E" gets 9. That's how numbers drift from names.</li>
+  <li>How much controller memory the motions use.</li>
+  <li><b>Download Motion Group</b> (F6) uploads to the controller. The robot must be connected (Connect).</li>
+</ol>
+<div class="note"><p><b>Main rule:</b> not sure which number to write in Task? Open F4 and read the Index. No need to guess on the robot.</p></div>
+
+<h2>1. Page number ≠ number in the name</h2>
+<p>In Task you write <code>motion:-:50 = N</code>, but N is <b>not</b> the number in the page name ("36 F_Shoot_R"). The real number is at the end of the file:</p>
+<pre><code>&lt;callFlow callIndex="37" subIndex="0" exitIndex="0" flow="36 F_Shoot_R" /&gt;</code></pre>
+<p><code>callIndex</code> is the number for Task, <code>flow</code> is the editor name. Gaps in numbering make them drift apart. Before guessing numbers on the robot, search the file for <code>callFlow</code>. It takes a second.</p>
+
+<h2>2. Page → pose → frame</h2>
+<pre><code>&lt;Page name="1 Init"&gt;
+  &lt;step frame="125" pose="-81.15 80.86 ..." /&gt;
+&lt;/Page&gt;</code></pre>
+<ul>
+  <li><code>pose</code> = 18 angles <b>in degrees</b>, in order for servo ID 1…18.</li>
+  <li>To AX-12 units: <code>pos = 512 + degrees × 1023 / 300</code>.</li>
+  <li><code>frame</code> always increases within a page in our files (9, 18, 30…), so it is <b>time since page start</b>; step length = difference of neighbours. Generating pages by script? Write cumulative frames. When we wrote "time going backwards" (14, 50, 90, 30…) the controller skipped steps instantly.</li>
+</ul>
+
+<h2>3. Mirroring (right ↔ left)</h2>
+<p>To turn a right kick into a left one, take each joint pair and swap like this:</p>
+<pre><code>(a, b) → (−b, −a)</code></pre>
+<p>Keep frame times as is. Our right power kick was 5.5° off its mirror and made the robot fall. After an exact mirror it stood as well as the left one.</p>
+
+<h2>4. Two-page kicks</h2>
+<p>A power kick is the page <b>plus its exit page</b>, linked in the unit:</p>
+<pre><code>&lt;unit main="..." exit="..." /&gt;</code></pre>
+<p>If you mirror or edit a kick, edit both pages, or the robot ends up in a wrong pose afterwards.</p>
+
+<h2>5. Walking is a page carousel</h2>
+<p>Forward walk is a chain "right step → left step → …" with separate entry and exit pages. That's why stopping with <code>motion:-:50 = 0</code> plays the exit page first (see <a href="task.html">Task</a>).</p>
+
+<div class="note"><p><b>Tip.</b> If you change knee angles (e.g. a lower stance), recompute the ankles too. Otherwise the centre of mass shifts and the robot tips forward or back on every motion.</p></div>
+</div>
+
+<div class="pager"><a href="task.html">← <span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span> →</a></div>
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

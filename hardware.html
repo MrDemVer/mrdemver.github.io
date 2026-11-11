@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Железо · Bioloid MrDemVer</title>
+<meta name="description" content="Battery, servos and other hardware advice for Bioloid.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html" class="active"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main>
+<div class="ru">
+<h1>Железо: аккумулятор и серво</h1>
+<p class="lead">Половина «глюков проги» на самом деле — севший аккумулятор или перегретое серво.</p>
+
+<h2>Аккумулятор: желательно мощнее штатного</h2>
+<div class="note">
+  <p><b>Совет:</b> по возможности ставь аккумулятор <b>ёмче и мощнее штатного</b> (то же напряжение, 3S LiPo 11.1 В, но больше мАч и с хорошей токоотдачей). Штатного на матч с камерой и частыми подъёмами впритык.</p>
+  <p>Перед покупкой проверь разъём, размер (должен влезть в корпус) и вес: лишние граммы на спине меняют равновесие во всех движениях.</p>
+</div>
+<p>Что бывает, когда аккумулятор подсел:</p>
+<ul>
+  <li>ошибки шины в терминале, будто «камера отвалилась» или «серво не отвечает»;</li>
+  <li>серво слабеют, и робот начинает падать на движениях, которые вчера стояли;</li>
+  <li>удары и подъёмы выходят вялыми.</li>
+</ul>
+<p>Напряжение можно прочитать прямо в проге: <code>motor:id:112</code> в десятых вольта (105 = 10.5 В). Ниже ~10 В лучше сразу менять аккумулятор, а не искать ошибку в коде. Мы сделали проверочную прогу, которая перед игрой печатает напряжение и температуру каждого серво.</p>
+
+<h2>Серво AX-12</h2>
+<ul>
+  <li><b>Температура:</b> <code>motor:id:113</code>, предел 70 °C. После долгой игры колени и голеностопы греются первыми, и тогда робот «проседает».</li>
+  <li><b>Сорванные шестерни:</b> дай серво цель на 40 единиц в сторону и посмотри, доехало ли. Недоезд под весом есть всегда (у нас около 6°), но если одно серво недоезжает сильно больше остальных, пора менять.</li>
+  <li>Под весом AX-12 отстаёт от команды примерно на 14 мс и проходит около 29° за 130 мс. Учитывай это в быстрых движениях.</li>
+</ul>
+
+<h2>Любая переделка робота сдвигает центр тяжести</h2>
+<div class="warn"><p><b>Главное правило:</b> поменял что-то в роботе — проверяй и правь движения. Все страницы в R+Motion рассчитаны на определённое положение центра тяжести. Сдвинулся он хотя бы на сантиметр, и робот начинает заваливаться на ходьбе, ударах и подъёмах, которые вчера работали.</p></div>
+<p>Что сдвигает центр тяжести:</p>
+<ul>
+  <li><b>камера на голове</b> и её держатель: груз высоко, поэтому влияет сильнее всего;</li>
+  <li><b>другой аккумулятор</b>: тяжелее, или стоит не там же;</li>
+  <li><b>печатные детали</b>: спина, бампер, крышки, тапочки на стопы (они меняют ещё и высоту и сцепление с полом);</li>
+  <li><b>гироскоп, провода, плата</b>: мелочь, но вместе набегает;</li>
+  <li><b>другие углы суставов в стойке</b>, например колени согнуты сильнее, чтобы робот стоял ниже.</li>
+</ul>
+<p>Что делать:</p>
+<ol>
+  <li>После переделки прогони <b>все</b> основные движения: стойку, ходьбу, повороты, удары, подъёмы. Не только то, что менял.</li>
+  <li>Падает вперёд или назад — сначала правь <b>голеностопы</b> (наклон стопы). Это самая маленькая правка, и чаще всего её хватает.</li>
+  <li>Поменял колени — сразу пересчитай и голеностопы, иначе робот валится на всех движениях разом. Мы на этом ловились: колени ставили ниже, а голеностопы оставляли, и робот заваливался вперёд.</li>
+  <li>Добавил вес сверху (камера) — робот стал менее устойчивым в ударах. Чуть замедли быстрые шаги или уменьши размах.</li>
+  <li>Сохраняй рабочие движения под новым именем с датой («после камеры v3»), чтобы откатиться, если правка не пошла.</li>
+</ol>
+
+<h2>Симулятор ≠ железо</h2>
+<p>Движение, которое идеально стоит в симуляторе, на роботе может упасть: настоящие серво мягче, контакт стопы с полом другой, у каждого робота свои нули. Сим хорош для идей, а последнее слово всегда за железом.</p>
+</div>
+
+<div class="en">
+<h1>Hardware: battery and servos</h1>
+<p class="lead">Half of all "program glitches" are really a flat battery or an overheated servo.</p>
+
+<h2>Battery: preferably stronger than stock</h2>
+<div class="note">
+  <p><b>Advice:</b> if you can, use a battery with <b>more capacity and current than stock</b> (same voltage, 3S LiPo 11.1 V, but more mAh and a good discharge rating). The stock one barely lasts a match with a camera and frequent get-ups.</p>
+  <p>Before buying, check the connector, the size (it must fit) and the weight: extra grams on the back change balance in every motion.</p>
+</div>
+<p>What a weak battery looks like:</p>
+<ul>
+  <li>bus errors in the terminal, as if "the camera dropped" or "a servo isn't answering";</li>
+  <li>servos get weaker and the robot falls on motions that were fine yesterday;</li>
+  <li>kicks and get-ups become sluggish.</li>
+</ul>
+<p>You can read voltage in your program: <code>motor:id:112</code> in tenths of a volt (105 = 10.5 V). Below ~10 V, swap the battery before hunting bugs in code. We made a check program that prints voltage and temperature of every servo before a game.</p>
+
+<h2>AX-12 servos</h2>
+<ul>
+  <li><b>Temperature:</b> <code>motor:id:113</code>, limit 70 °C. After a long game knees and ankles heat up first and the robot "sags".</li>
+  <li><b>Stripped gears:</b> move the servo 40 units and check it got there. Under load there is always some shortfall (about 6° for us), but if one servo falls short much more than the others, replace it.</li>
+  <li>Under load an AX-12 lags the command by about 14 ms and moves about 29° in 130 ms. Keep that in mind for fast motions.</li>
+</ul>
+
+<h2>Any change to the robot moves its centre of mass</h2>
+<div class="warn"><p><b>Main rule:</b> changed something on the robot? Check and fix your motions. Every R+Motion page is tuned for a certain centre of mass. Move it even a centimetre and the robot starts tipping on walks, kicks and get-ups that worked yesterday.</p></div>
+<p>What moves the centre of mass:</p>
+<ul>
+  <li><b>a camera on the head</b> and its mount: weight up high, so the biggest effect;</li>
+  <li><b>a different battery</b>: heavier, or mounted elsewhere;</li>
+  <li><b>printed parts</b>: back plate, bumper, covers, foot covers (these also change height and floor grip);</li>
+  <li><b>gyro, wires, boards</b>: small, but it adds up;</li>
+  <li><b>different stance joint angles</b>, e.g. knees bent more for a lower stance.</li>
+</ul>
+<p>What to do:</p>
+<ol>
+  <li>After a change, run <b>all</b> main motions: stance, walk, turns, kicks, get-ups. Not just what you changed.</li>
+  <li>Tips forward or back? Fix the <b>ankles</b> (foot tilt) first. It's the smallest edit and is often enough.</li>
+  <li>Changed the knees? Recompute the ankles too, or the robot tips on every motion at once. We fell into this: lowered the knees, kept the ankles, and the robot fell forward.</li>
+  <li>Added weight on top (camera)? The robot is less stable in kicks. Slow down fast steps a bit or reduce the swing.</li>
+  <li>Save working motions under a new name with a date ("after camera v3") so you can roll back if an edit fails.</li>
+</ol>
+
+<h2>Simulator ≠ hardware</h2>
+<p>A motion that stands perfectly in simulation can fall on the real robot: real servos are softer, foot contact is different, every robot has its own zero offsets. Simulation is great for ideas; hardware has the final word.</p>
+</div>
+
+<div class="pager"><a href="firmware.html">← <span class="ru">Своя прошивка</span><span class="en">Firmware</span></a></div>
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

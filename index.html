@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bioloid · Bioloid MrDemVer</title>
+<meta name="description" content="Bioloid soccer robot: guides on RoboPlus Task, Motion, gyro, cameras and custom CM-530 firmware.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html" class="active"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main class="wide">
+<section class="hero hero-grid">
+  <img class="hero-photo" src="img/robot.jpg" width="456" height="1100" alt="Bioloid с камерой и печатными деталями">
+  <div>
+  <div class="ru">
+    <h1>Bioloid играет в футбол</h1>
+    <p class="lead">Робот ROBOTIS Bioloid, переделанный под робофутбол: камера, гироскоп, своя прошивка. Здесь собрано всё, что я узнал по ходу, особенно то, чего нет в официальных инструкциях.</p>
+    <p>3 место на РобоФинисте 2026 (футбол 2 на 2, гуманоиды). Сейчас готовлюсь к RoboCup.</p>
+  </div>
+  <div class="en">
+    <h1>Bioloid plays soccer</h1>
+    <p class="lead">A ROBOTIS Bioloid humanoid rebuilt for robot soccer: camera, gyro, custom firmware. This site collects everything I learned along the way, especially what the official manuals don't tell you.</p>
+    <p>3rd place at RoboFinist 2026 (2 vs 2 humanoid soccer). Now preparing for RoboCup.</p>
+  </div>
+  <div class="socials">
+    <a href="https://www.youtube.com/@MrDemVer" target="_blank" rel="noopener">YouTube</a>
+    <a href="https://www.instagram.com/mrdemver" target="_blank" rel="noopener">Instagram</a>
+  </div>
+  </div>
+</section>
+
+<h2><span class="ru">Объяснялки</span><span class="en">Guides</span></h2>
+<div class="cards">
+  <a class="card" href="task.html">
+    <b>R+Task</b>
+    <span class="ru">Переменные, таймеры, печать в терминал, кнопки, зуммер. Ловушки, на которые уходят вечера.</span>
+    <span class="en">Variables, timers, terminal printing, buttons, buzzer. Traps that eat whole evenings.</span>
+  </a>
+  <a class="card" href="motion.html">
+    <b>R+Motion</b>
+    <span class="ru">Как устроен .mtnx: номера страниц, кадры, зеркалирование, удары из двух страниц.</span>
+    <span class="en">How .mtnx works: page numbers, frames, mirroring, two-page kicks.</span>
+  </a>
+  <a class="card" href="gyro.html">
+    <b class="ru">Гироскоп</b><b class="en">Gyro</b>
+    <span class="ru">Почему штатный гиро не видит падение, как подключить MPU через камеру и встать по нагрузке серво.</span>
+    <span class="en">Why the stock gyro can't see a fall, how to wire an MPU through the camera, getting up by servo load.</span>
+  </a>
+  <a class="card" href="camera.html">
+    <b class="ru">Камеры</b><b class="en">Cameras</b>
+    <span class="ru">TrackingCam v2 и v3: регистры, цвет, освещение, почему «камера не видит».</span>
+    <span class="en">TrackingCam v2 and v3: registers, colour, lighting, why "the camera sees nothing".</span>
+  </a>
+  <a class="card" href="firmware.html">
+    <b class="ru">Своя прошивка</b><b class="en">Custom firmware</b>
+    <span class="ru">Пишем на C для CM-530: чем собирать, как заливать без RoboPlus, как не окирпичить.</span>
+    <span class="en">Writing C for the CM-530: which compiler, flashing without RoboPlus, how not to brick it.</span>
+  </a>
+  <a class="card" href="hardware.html">
+    <b class="ru">Железо</b><b class="en">Hardware</b>
+    <span class="ru">Аккумулятор, напряжение, температура серво. Мелочи, из-за которых «прога глючит».</span>
+    <span class="en">Battery, voltage, servo temperature. Small things that make "the program glitch".</span>
+  </a>
+</div>
+
+<div class="note">
+  <p class="ru"><b>Для кого это.</b> Для тех, у кого есть Bioloid (Premium, GP или похожий на CM-530) и кто упёрся в то, что в RoboPlus не всё работает как написано. Если начинаешь с нуля, иди по порядку: Task → Motion → камеры → гиро.</p>
+  <p class="en"><b>Who this is for.</b> Anyone with a Bioloid (Premium, GP or anything on a CM-530) who found that RoboPlus doesn't always work as documented. Starting from zero? Go in order: Task → Motion → cameras → gyro.</p>
+</div>
+
+
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

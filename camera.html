@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Камеры · Bioloid MrDemVer</title>
+<meta name="description" content="TrackingCam v2 and v3 on Bioloid: registers, colour thresholds, typical failures.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html" class="active"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main>
+<div class="ru">
+<h1>Камеры TrackingCam v2 и v3</h1>
+<p class="lead">Камера ищет цветные пятна (блобы) и отдаёт их координаты роботу по шине Dynamixel. ID камеры обычно 51, в Task чтение выглядит как <code>custom:w:51:адрес</code>.</p>
+
+<h2>v2 и v3: в чём разница</h2>
+<div class="table-wrap"><table>
+<tr><th></th><th>TrackingCam v2</th><th>TrackingCam v3</th></tr>
+<tr><td>Внутри</td><td>микроконтроллер, закрытая прошивка</td><td>маленький Linux-компьютер (NanoPi)</td></tr>
+<tr><td>Кадр</td><td>320×240</td><td>640×480</td></tr>
+<tr><td>Шаг слота блоба</td><td><b>10 байт</b>: 16, 26, 36, 46…</td><td><b>16 байт</b>: 16, 32, 48, 64, 80</td></tr>
+<tr><td>Поля</td><td>type, cx, cy, area</td><td>type, cx, cy, area, left, right, top, bottom</td></tr>
+<tr><td>Номер шаблона</td><td>type = 0 у всех</td><td>type = номер шаблона (мяч и ворота различаются)</td></tr>
+<tr><td>Настройка</td><td>утилита на ПК</td><td>сайт в браузере (камера по USB)</td></tr>
+<tr><td>Свои скрипты, гиро</td><td>нет</td><td>да (см. <a href="gyro.html">Гироскоп</a>)</td></tr>
+</table></div>
+<div class="warn"><p><b>Проги под v2 на v3 читают мимо.</b> Шаг слотов разный, поэтому вместо координат приходит мусор. Переводя прогу на другую камеру, первым делом поменяй адреса.</p></div>
+
+<h2>Цвет: YCbCr, а не HSV</h2>
+<p>Ползунки цвета на обеих камерах устроены так:</p>
+<ul>
+  <li><b>Value</b> — яркость (0…255);</li>
+  <li><b>Ncb</b> — «синева» (Cb−128);</li>
+  <li><b>Ncr</b> — «краснота» (Cr−128).</li>
+</ul>
+<p>Оранжевый мяч = высокая краснота, низкая синева. <b>У v3 Ncb и Ncr переставлены местами</b>: её Ncb на деле краснота. Если заполнить «правильно», детектор молчит намертво.</p>
+
+<h2>Главная причина «камера не видит» — свет</h2>
+<p>Один и тот же мяч в разном свете уезжает по цвету так, что окна вообще не пересекаются:</p>
+<div class="table-wrap"><table>
+<tr><th>условия</th><th>Value</th><th>Ncr (краснота)</th><th>Ncb (синева)</th></tr>
+<tr><td>тёмная комната</td><td>13…39</td><td>17…35</td><td>−10…−1</td></tr>
+<tr><td>та же комната, автоэкспозиция</td><td>52…84</td><td>54…70</td><td>−27…−17</td></tr>
+<tr><td>яркий свет</td><td>92…183</td><td>40…76</td><td>−57…−29</td></tr>
+</table></div>
+<ul>
+  <li><b>На поле настраивай заново.</b> Порог, подобранный дома, на соревнованиях почти наверняка не сработает.</li>
+  <li>Прежде чем крутить пороги, проверь экспозицию и баланс белого. Если они прибиты под дневной свет, вечером кадр тёмный, и мяч пропадает.</li>
+  <li>Проверка тракта: распахни окно цвета на весь диапазон. Должен появиться один блоб на весь кадр. Не появился, значит проблема не в цвете.</li>
+</ul>
+
+<h2>Грабли v2</h2>
+<ul>
+  <li><b>Мяч мигает, ворота видны стабильно</b> — блик режет мяч на два куска. Лечится геометрией: <code>Gaps</code> ≈ 12, <code>Size</code> (Min W/H) = 1, а не порогами цвета.</li>
+  <li>После правки настроек кнопка в шапке меняется на <b>«Need -->»</b>. Пока её не нажмёшь, в камеру ничего не ушло.</li>
+  <li>В <i>Interface setup</i> поставь сортировку <code>Type, similarity</code>, тогда объекты не скачут по слотам.</li>
+  <li>Если <code>cx</code> больше 320 или type странный, ты читаешь не те адреса, а камера тут ни при чём.</li>
+  <li>Активный шаблон помнит последний цвет. Настраивал синие ворота, и мяч перестал находиться: проверь, какой шаблон включён.</li>
+</ul>
+
+<h2>Грабли v3</h2>
+<ul>
+  <li><b>Не выбирай мяч по area.</b> Регистр 16-битный: вблизи он переполняется и становится нулём. Бери ширину <code>right−left</code> и высоту <code>bottom−top</code>. И area в регистре надо умножать на 4 (кадр обрабатывается прореженным).</li>
+  <li>Камера сама сортирует пятна: <b>слот 0 всегда самый крупный</b>. Перебирать все пять не обязательно.</li>
+  <li><b>Ошибки чтения почти на каждом запросе</b>: у нас в настройках камеры такт обслуживания шины стоял 20 мс, а CM-530 столько не ждёт. С 2 мс ошибки ушли полностью. Терминал и RoboPlus Manager ждут дольше, поэтому у них «всё работает», и это сбивает с толку.</li>
+  <li>RoboPlus Manager не находит камеру через <code>SCAN</code>, хотя она жива: в адресе модели она отдаёт ноль. Проверяй через <code>PING 51</code>.</li>
+  <li><b>Не выключай питание во время сохранения настроек.</b> Файл настроек может обнулиться, и камера перестанет стартовать. Держи копию рабочих настроек на ПК.</li>
+  <li>Камера загружается несколько секунд. Если прога читает её сразу после включения, первые чтения дают ошибки.</li>
+</ul>
+
+<h2>Наши доработки сайта камеры v3</h2>
+<p>Сайт настройки v3 открывается в браузере, когда камера подключена по USB (<code>http://192.168.42.1</code>). <b>Интернет для него не нужен</b>: вся страница лежит на самой камере, так что на соревнованиях она тоже работает. Внутри камеры Linux, поэтому сайт можно дорабатывать. Вот что мы поменяли и почему.</p>
+
+<h3>Как устроен сайт</h3>
+<ul>
+  <li>Вся раскладка страницы (кнопки, поля, ползунки) лежит <b>одним JSON-файлом</b> на камере. Поправил файл по SSH, нажал Ctrl+F5 в браузере, и новая кнопка на месте. Ничего перезапускать не надо.</li>
+  <li><b>Сначала сохрани копию оригинала.</b> Мы держим бэкап и на камере, и на ПК.</li>
+  <li>Кнопка сайта умеет только одно: записать одно число в один параметр камеры. Пресет «выставить пять настроек разом» одной кнопкой не сделать.</li>
+</ul>
+
+<h3>Ошибка заводского сайта: поле Convexity</h3>
+<p>Поле, подписанное <b>Convexity</b> (выпуклость), на самом деле привязано к <b>площади</b> выпуклой оболочки. Настоящая выпуклость в камере есть, но на сайт выведена не была. Поэтому воротам (форма «П», выпуклость низкая) и мячу (круг, выпуклость высокая) нельзя было задать разную форму. Мы добавили настоящие поля выпуклости и две кнопки:</p>
+<ul>
+  <li><b>«Ворота П»</b> — максимальная выпуклость 70: проходят рамки, круглое отсекается;</li>
+  <li><b>«Мяч круг»</b> — выпуклость до 100.</li>
+</ul>
+<div class="warn"><p>Обратная ловушка: мячу выпуклость 70 ставить нельзя. У нас мяч мигал именно поэтому: чистый круг имеет выпуклость почти 100, и фильтр выкидывал его в самые хорошие кадры.</p></div>
+
+<h3>Кнопки, которые запускают скрипты</h3>
+<p>Раз кнопка пишет только одно число, мы сделали так: кнопка пишет <b>код</b> в неиспользуемый параметр камеры, а маленькая служба на камере видит этот код и запускает нужный скрипт. Пока скрипт работает, в параметре лежит 1, по окончании 0. Служба стартует сама при включении.</p>
+<div class="table-wrap"><table>
+<tr><th>кнопка</th><th>код</th><th>что делает</th></tr>
+<tr><td><b>Улучшить</b></td><td>777</td><td>подбирает окно цвета под то, что сейчас в кадре (~6 с). Мяч должен быть в кадре.</td></tr>
+<tr><td><b>Подобрать сам</b></td><td>700</td><td>сам выбирает экспозицию под свет в зале (~25 с)</td></tr>
+<tr><td><b>Тёмный / Средний / Светлый</b></td><td>701 / 702 / 703</td><td>быстро выставить экспозицию под свет вручную</td></tr>
+<tr><td><b>Улучшить ворота</b></td><td>800</td><td>то же, что «Улучшить», но для рамки ворот</td></tr>
+</table></div>
+
+<h3>Как работает «Улучшить»</h3>
+<ol>
+  <li>Берёт текущее окно цвета (6 границ: яркость, Ncb и Ncr, у каждой min и max).</li>
+  <li>По очереди раздвигает каждую границу наружу, пока пятно растёт и остаётся компактным (для мяча ещё и круглым).</li>
+  <li>Потом сужает обратно то, что зацепило фон. До трёх кругов.</li>
+  <li>Решает по ответу самого детектора, а не по картинке: цвет, посчитанный по jpeg, врёт.</li>
+</ol>
+<p>На практике из обрезанного пятна 82×32 получается целый мяч 88×86.</p>
+
+<h3>«Улучшить ворота»: почему отдельная кнопка</h3>
+<ul>
+  <li>Обычное «Улучшить» бракует всё шире 420 px и пустое внутри, а ворота как раз широкая пустая «П».</li>
+  <li><b>Яркость ворот сужать нельзя:</b> рама разваливается до одной перекладины. Кнопка только расширяет яркость, а сужает цвет.</li>
+  <li>Что окно зацепило мебель, видно по сдвигу <b>края</b> рамки, а не по её ширине. Стоп, если край уехал больше чем на 10 px.</li>
+  <li>Если итог хуже, чем был, кнопка откатывает всё назад. То есть она либо улучшает, либо ничего не трогает.</li>
+  <li>Если рама ездит по кадру (робот вертит головой), кнопка отказывается работать: сначала останови прогу.</li>
+</ul>
+
+<h3>Экспозиция: «темнее — лучше»</h3>
+<p>Экспозицию мы задаём не фиксированной выдержкой, а <b>целью автоэкспозиции</b>: при смене света кадр сам подстраивается. Автоподбор перебирает цели и для каждой смотрит, как часто виден мяч и насколько он круглый. На железе победила самая тёмная цель: мяч виден в 100% кадров и остаётся круглым, а на светлых настройках пятно расплывается на фон. Выбор сохраняется и переживает выключение.</p>
+
+<h3>Светодиоды камеры</h3>
+<div class="table-wrap"><table>
+<tr><th>что горит</th><th>значит</th></tr>
+<tr><td>красный мигает</td><td>камера загружается, детектор ещё не готов</td></tr>
+<tr><td>красный ровно</td><td>готова к работе</td></tr>
+<tr><td>зелёный</td><td>в кадре мяч</td></tr>
+</table></div>
+<p>Удобно перед матчем: глянул на робота, и сразу видно, видит ли он мяч, без ноутбука. (У камеры всего два светодиода, яркость у них не регулируется, только вкл/выкл и мигание.)</p>
+
+<div class="warn"><p><b>Главная грабля всех доработок:</b> камера пишет файлы не сразу. Мы записали скрипт, камера перезагрузилась, и файл стал пустым вместе с бэкапом. После любой записи на камеру выполняй <code>sync</code> и не выдёргивай питание сразу.</p></div>
+</div>
+
+<div class="en">
+<h1>TrackingCam v2 and v3</h1>
+<p class="lead">The camera finds colour blobs and sends their coordinates to the robot over the Dynamixel bus. Camera ID is usually 51; in Task a read looks like <code>custom:w:51:address</code>.</p>
+
+<h2>v2 vs v3</h2>
+<div class="table-wrap"><table>
+<tr><th></th><th>TrackingCam v2</th><th>TrackingCam v3</th></tr>
+<tr><td>Inside</td><td>microcontroller, closed firmware</td><td>small Linux computer (NanoPi)</td></tr>
+<tr><td>Frame</td><td>320×240</td><td>640×480</td></tr>
+<tr><td>Blob slot step</td><td><b>10 bytes</b>: 16, 26, 36, 46…</td><td><b>16 bytes</b>: 16, 32, 48, 64, 80</td></tr>
+<tr><td>Fields</td><td>type, cx, cy, area</td><td>type, cx, cy, area, left, right, top, bottom</td></tr>
+<tr><td>Template number</td><td>type = 0 for all</td><td>type = template number (ball vs goal)</td></tr>
+<tr><td>Setup</td><td>PC utility</td><td>web page in a browser (camera over USB)</td></tr>
+<tr><td>Own scripts, gyro</td><td>no</td><td>yes (see <a href="gyro.html">Gyro</a>)</td></tr>
+</table></div>
+<div class="warn"><p><b>v2 programs read garbage on v3.</b> The slot step differs, so you get junk instead of coordinates. Switching cameras? Fix the addresses first.</p></div>
+
+<h2>Colour: YCbCr, not HSV</h2>
+<ul>
+  <li><b>Value</b> = brightness (0…255);</li>
+  <li><b>Ncb</b> = "blueness" (Cb−128);</li>
+  <li><b>Ncr</b> = "redness" (Cr−128).</li>
+</ul>
+<p>An orange ball = high red, low blue. <b>On v3 Ncb and Ncr are swapped</b>: its Ncb is actually redness. Fill them in "correctly" and the detector stays silent.</p>
+
+<h2>The #1 reason "the camera sees nothing": light</h2>
+<p>The same ball under different lighting moves so far in colour space that the windows don't even overlap:</p>
+<div class="table-wrap"><table>
+<tr><th>conditions</th><th>Value</th><th>Ncr (red)</th><th>Ncb (blue)</th></tr>
+<tr><td>dark room</td><td>13…39</td><td>17…35</td><td>−10…−1</td></tr>
+<tr><td>same room, auto exposure</td><td>52…84</td><td>54…70</td><td>−27…−17</td></tr>
+<tr><td>bright light</td><td>92…183</td><td>40…76</td><td>−57…−29</td></tr>
+</table></div>
+<ul>
+  <li><b>Re-tune on the field.</b> Thresholds from home will almost certainly fail at the competition.</li>
+  <li>Check exposure and white balance before touching thresholds. If they are fixed for daylight, the evening frame is dark and the ball disappears.</li>
+  <li>Pipeline check: open the colour window to the full range. You should get one blob covering the whole frame. If not, the problem isn't colour.</li>
+</ul>
+
+<h2>v2 traps</h2>
+<ul>
+  <li><b>Ball flickers, goal is stable</b>: a highlight splits the ball in two. Fix it with geometry (<code>Gaps</code> ≈ 12, <code>Size</code> Min W/H = 1), not colour.</li>
+  <li>After changing settings the header button turns into <b>"Need -->"</b>. Until you press it, nothing is saved to the camera.</li>
+  <li>In <i>Interface setup</i> use sorting <code>Type, similarity</code> so objects don't jump between slots.</li>
+  <li>If <code>cx</code> &gt; 320 or type looks odd, you're reading the wrong addresses; the camera is fine.</li>
+  <li>The active template keeps the last colour. Tuned the blue goal and now the ball is gone? Check which template is active.</li>
+</ul>
+
+<h2>v3 traps</h2>
+<ul>
+  <li><b>Don't pick the ball by area.</b> The register is 16-bit: up close it overflows to zero. Use width <code>right−left</code> and height <code>bottom−top</code>. Also, area must be multiplied by 4 (frame is processed downscaled).</li>
+  <li>The camera sorts blobs itself: <b>slot 0 is always the largest</b>.</li>
+  <li><b>Read errors on almost every request</b>: our camera's bus service period was 20 ms, and the CM-530 doesn't wait that long. At 2 ms the errors vanished. The terminal and RoboPlus Manager wait longer, so "it works there", which is confusing.</li>
+  <li>RoboPlus Manager can't find the camera with <code>SCAN</code> even when it's alive (model number reads as zero). Use <code>PING 51</code>.</li>
+  <li><b>Don't cut power while saving settings.</b> The settings file can end up empty and the camera won't start. Keep a copy of working settings on your PC.</li>
+  <li>The camera takes a few seconds to boot. Reads right after power-on fail.</li>
+</ul>
+
+<h2>Our upgrades to the v3 camera's web page</h2>
+<p>The v3 setup page opens in a browser when the camera is plugged in over USB (<code>http://192.168.42.1</code>). <b>No internet needed</b>: the whole page lives on the camera, so it works at competitions too. The camera runs Linux, so the page can be modified. Here's what we changed and why.</p>
+
+<h3>How the page works</h3>
+<ul>
+  <li>The whole layout (buttons, fields, sliders) is <b>one JSON file</b> on the camera. Edit it over SSH, press Ctrl+F5 in the browser, and the new button is there. Nothing needs restarting.</li>
+  <li><b>Back up the original first.</b> We keep a copy on the camera and on the PC.</li>
+  <li>A page button can only do one thing: write one number to one camera parameter. A "set five settings at once" preset button isn't possible.</li>
+</ul>
+
+<h3>A bug in the stock page: the Convexity field</h3>
+<p>The field labelled <b>Convexity</b> is actually wired to convex hull <b>area</b>. Real convexity exists in the camera but wasn't on the page, so you couldn't give the goal (a "П" shape, low convexity) and the ball (a circle, high convexity) different shapes. We added real convexity fields and two buttons:</p>
+<ul>
+  <li><b>"Goal П"</b>: max convexity 70, frames pass, round things are rejected;</li>
+  <li><b>"Ball circle"</b>: convexity up to 100.</li>
+</ul>
+<div class="warn"><p>The opposite trap: don't give the ball max convexity 70. That's exactly why our ball flickered: a clean circle has convexity near 100, so the filter dropped it in the best frames.</p></div>
+
+<h3>Buttons that run scripts</h3>
+<p>Since a button only writes one number, we made it write a <b>code</b> to an unused camera parameter. A small service on the camera sees the code and runs the matching script. While it runs, the parameter holds 1, then 0. The service starts on boot.</p>
+<div class="table-wrap"><table>
+<tr><th>button</th><th>code</th><th>what it does</th></tr>
+<tr><td><b>Improve</b></td><td>777</td><td>tunes the colour window to what's in the frame (~6 s). The ball must be in view.</td></tr>
+<tr><td><b>Auto pick</b></td><td>700</td><td>picks exposure for the room's light (~25 s)</td></tr>
+<tr><td><b>Dark / Medium / Bright</b></td><td>701 / 702 / 703</td><td>quick manual exposure presets</td></tr>
+<tr><td><b>Improve goal</b></td><td>800</td><td>like Improve, but for the goal frame</td></tr>
+</table></div>
+
+<h3>How Improve works</h3>
+<ol>
+  <li>Takes the current colour window (6 limits: brightness, Ncb, Ncr, min and max each).</li>
+  <li>Pushes each limit outward in turn while the blob grows and stays compact (for the ball, also round).</li>
+  <li>Then pulls back whatever caught the background. Up to three rounds.</li>
+  <li>Judges by the detector's own output, not the image: colour measured from the jpeg lies.</li>
+</ol>
+<p>In practice a clipped 82×32 blob becomes a whole 88×86 ball.</p>
+
+<h3>Improve goal: why a separate button</h3>
+<ul>
+  <li>Regular Improve rejects anything wider than 420 px or hollow, and a goal is exactly a wide hollow "П".</li>
+  <li><b>Never narrow the goal's brightness:</b> the frame falls apart into a single bar. The button only widens brightness and narrows colour.</li>
+  <li>Catching furniture shows as the frame's <b>edge</b> moving, not its width. Stop if an edge moves more than 10 px.</li>
+  <li>If the result is worse than before, the button rolls everything back. It either improves things or leaves them alone.</li>
+  <li>If the frame moves around (robot turning its head), the button refuses: stop the program first.</li>
+</ul>
+
+<h3>Exposure: darker is better</h3>
+<p>We set exposure as an <b>auto-exposure target</b>, not a fixed shutter time, so the frame adapts when light changes. Auto pick tries targets and for each checks how often the ball is seen and how round it is. On hardware the darkest target won: ball visible in 100% of frames and still round, while brighter settings smear the blob into the background. The choice survives power-off.</p>
+
+<h3>Camera LEDs</h3>
+<div class="table-wrap"><table>
+<tr><th>LED</th><th>meaning</th></tr>
+<tr><td>red blinking</td><td>booting, detector not ready</td></tr>
+<tr><td>red steady</td><td>ready</td></tr>
+<tr><td>green</td><td>ball in view</td></tr>
+</table></div>
+<p>Handy before a match: one look at the robot tells you whether it sees the ball, no laptop needed. (The camera has only two LEDs; brightness can't be changed, only on/off and blinking.)</p>
+
+<div class="warn"><p><b>The big trap of all camera edits:</b> the camera doesn't write files to disk right away. We saved a script, the camera rebooted, and the file came back empty, along with its backup. After writing anything to the camera, run <code>sync</code> and don't cut power right away.</p></div>
+</div>
+
+<div class="pager"><a href="gyro.html">← <span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span> →</a></div>
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

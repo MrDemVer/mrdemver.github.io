@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гироскоп · Bioloid MrDemVer</title>
+<meta name="description" content="Gyro on Bioloid: stock ROBOTIS gyro, MPU through TrackingCam v3, fall detection.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <a class="brand" href="index.html">Bioloid<span>.</span>MrDemVer</a>
+  <nav class="menu"><a href="index.html"><span class="ru">Главная</span><span class="en">Home</span></a><a href="task.html"><span class="ru">R+Task</span><span class="en">R+Task</span></a><a href="motion.html"><span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="gyro.html" class="active"><span class="ru">Гироскоп</span><span class="en">Gyro</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span></a><a href="firmware.html"><span class="ru">Своя прошивка</span><span class="en">Firmware</span></a><a href="hardware.html"><span class="ru">Железо</span><span class="en">Hardware</span></a></nav>
+  <div class="switches">
+    <button id="lang-btn" type="button" aria-label="Language">EN</button>
+    <button id="theme-btn" type="button" aria-label="Theme">◐</button>
+  </div>
+</div></header>
+<main>
+<div class="ru">
+<h1>Гироскоп: как роботу понять, что он упал</h1>
+<p class="lead">Три пути: штатный гиро ROBOTIS, настоящий датчик MPU через камеру v3 и вообще без гиро, по нагрузке серво.</p>
+
+<h2>1. Штатный ROBOTIS GYRO: почему он «не работает»</h2>
+<p>Плата GYRO меряет <b>скорость поворота</b>, а не наклон. Робот, который лежит неподвижно, на спине и на груди даёт одно и то же число. Различить стороны можно только в момент падения, по знаку пика.</p>
+<ul>
+  <li>Шкала на CM-530: <b>центр около 300</b>, а не 512. Диапазон 100…510 соответствует ±300°/с. Пороги вроде «&gt;600» не сработают никогда, потому что выше 510 он не выдаёт.</li>
+  <li>Читай его <b>в каждом проходе цикла</b> и запоминай знак большого отклонения в переменную (спина или грудь). Подъём вызывай уже потом.</li>
+  <li>Усреднять с паузами нельзя: пик длится доли секунды и пролетит мимо (см. <a href="task.html">паузы в Task</a>).</li>
+</ul>
+
+<h2>2. MPU-6050 / MPU-9250 через TrackingCam v3</h2>
+<p>Напрямую в CM-530 такой датчик не подключить: порты там аналоговые, I2C нет. Зато внутри камеры v3 стоит Linux-компьютер с гребёнкой контактов. Скрипт на камере читает датчик и кладёт углы в её регистры, а CM-530 читает их как обычную камеру. <b>Прошивка CM-530 остаётся заводской.</b></p>
+
+<h3>Подключение (I2C, без пайки)</h3>
+<div class="table-wrap"><table>
+<tr><th>верхний ряд</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
+<tr><th>нижний ряд</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
+</table></div>
+<div class="warn">
+  <p><b>Осторожно:</b> под SDA стоит 12V, под 3V3 — 5V. Ошибёшься на один ряд, и модуль сгорит.</p>
+  <p>По адресу 0x68 на шине камеры уже сидят часы, а у MPU-6050 адрес тот же, и модуль не виден. Поставь перемычку <b>AD0 → VCC</b>, тогда адрес станет 0x69.</p>
+</div>
+<p>У нас I2C на камере со временем начал отваливаться (обрывы каждые 5–30 с на трёх разных датчиках). Перешли на <b>MPU-9250 по SPI</b>: с тех пор ни одного обрыва.</p>
+
+<h3>Регистры, которые читает робот</h3>
+<div class="table-wrap"><table>
+<tr><th>адрес</th><th>что</th><th>формат</th></tr>
+<tr><td>100</td><td>наклон вперёд-назад</td><td>градусы×10 + 900 (900 = ровно)</td></tr>
+<tr><td>102</td><td>наклон вбок</td><td>градусы×10 + 1800</td></tr>
+<tr><td>104</td><td>состояние</td><td>0 стоит, 1 на груди, 2 на спине, 3 на боку</td></tr>
+<tr><td>106</td><td>курс</td><td>градусы×10, 0…3599</td></tr>
+</table></div>
+<p>Смещения +900 и +1800 нужны, потому что регистр беззнаковый, а угол бывает отрицательным. В Task читать так: <code>custom:w:51:104</code>.</p>
+
+<h3>Грабли</h3>
+<ul>
+  <li><b>Не опрашивай камеру в каждом проходе цикла.</b> 300 чтений в секунду забивают шину, и движения робота начинают лагать. Раз в 0.5 с без единой ошибки.</li>
+  <li>При сбое чтения приходит <code>-1</code>. Не обнуляй из-за него счётчик падения, просто пропускай.</li>
+  <li>Ноль датчика зависит от того, как он прикручен. Сними значения, когда робот стоит ровно, и считай «ровно» от них.</li>
+  <li>Курс: робот стартует лицом к чужим воротам, и гиро помнит, где они. Так целиться оказалось проще и надёжнее, чем искать ворота глазами. Но после удара стопой мгновенный замер может решить, что робот «лежит»: бери среднее за 50 мс и «упал» только после 0.3 с подряд.</li>
+</ul>
+
+<h2>3. Камера v2 и гиро</h2>
+<p>К TrackingCam v2 так подключить не выйдет: внутри у неё микроконтроллер с закрытой прошивкой, без Linux и своих скриптов. Варианты для v2: Arduino как отдельное устройство на шине Dynamixel, Arduino с аналоговым выходом в порт CM-530 или штатный гиро (п.1).</p>
+
+<h2>4. Без гиро: подъём по нагрузке серво</h2>
+<p>Этот способ работает на <b>обычном Bioloid без всяких датчиков</b>, только на заводской прошивке и R+Task. Мы гоняли его на матчах. Идея простая: каждое серво AX-12 умеет сказать, с какой силой его давят (<code>motor:id:111</code>, Present Load). Стоящий робот давит весом на стопы. Лежащий — нет.</p>
+
+<h3>Шаг 1. Понять, что робот лежит</h3>
+<p>Читаем нагрузку двух голеностопов (ID 15 и 16) и складываем. Замеры на нашем роботе:</p>
+<div class="table-wrap"><table>
+<tr><th>поза</th><th>сумма нагрузок стоп</th></tr>
+<tr><td>стоит</td><td>96–160</td></tr>
+<tr><td>в выпадах вратаря</td><td>88–680 (стопы нагружены даже сильнее)</td></tr>
+<tr><td>лежит на груди</td><td>0–48</td></tr>
+<tr><td>лежит на спине</td><td>0</td></tr>
+</table></div>
+<p>Порог <b>50</b> делит чисто: «лежу» = сумма ≤ 50 <b>полсекунды подряд</b>. Одиночный провал (у нас был один отсчёт 24 на входе в выпад) детект не берёт.</p>
+<div class="warn">
+  <p><b>Бит 1024.</b> У AX-12 нагрузка — это число 0…2047, где бит 1024 означает <b>направление</b> силы, а не её величину. Если число ≥ 1024, вычти 1024. Без этого одна и та же поза давала то 88, то 1112, и робот путал сторону «через раз».</p>
+  <p><b>Почему стопы, а не бедро.</b> Сначала мы смотрели на бедро (ID 11). В выпаде одно колено нагружено, другое расслаблено, и робот решал, что лежит, прямо посреди блока. Стопы в выпаде нагружены всегда.</p>
+</div>
+
+<h3>Шаг 2. Грудь или спина: проба руками</h3>
+<p>Нагрузка стоп одинакова на груди и на спине, поэтому спрашиваем руки. Плечи уводим в позу, где рука должна упереться в пол, ждём около 0.5 с и читаем нагрузку обеих рук (ID 1 и 2), три раза с шагом 0.1 с:</p>
+<ul>
+  <li>лёжа <b>на груди</b> рука упирается в пол, сумма за 3 замера около 1700–1800;</li>
+  <li>лёжа <b>на спине</b> рука идёт свободно, около 590;</li>
+  <li>порог посередине: <b>≥ 1150 = грудь</b> (подъём с груди), меньше — спина.</li>
+</ul>
+<p>Смотреть надо именно на нагрузку, а не на позицию руки: позиции на груди и спине почти одинаковые (317 против 300), а нагрузка отличается в разы. Сумма двух рук за три замера нужна потому, что одиночное чтение шумит.</p>
+
+<h3>Шаг 3. Встать и не оборвать подъём</h3>
+<ul>
+  <li>Запусти страницу подъёма и жди по таймеру ровно столько, сколько она длится (у нас 3.4 с с груди и 4.6 с со спины). Длительность смотри в R+Motion: «Expected total play time» на вкладке F3.</li>
+  <li><b>Не жди по <code>wait motion:-:51</code></b>: если страница успела кончиться до проверки, прога зависает навсегда.</li>
+  <li>Смотри, какую страницу реально играет юнит. У нас юнит «29 F getup» играл страницу «29 F getup (1)», а одноимённая без суффикса была на 10 секунд и не вызывалась вообще. Из-за этого мы долго думали, что паузы не хватает.</li>
+  <li>После подъёма — стойка, и детект снова в работе.</li>
+</ul>
+
+<h3>Шаг 4. Тайминг: всё по таймеру</h3>
+<p>Сначала мы считали паузы в проходах цикла («8 проходов = 0.8 с»), и ничего не работало: проход оказался то в разы короче, то из-за тайм-аутов шины в разы длиннее. Робот лежал 4 секунды и только потом начинал двигать руками. Рабочий вариант — <b>засекать время таймером</b> и проверять его, не блокируясь (как в <a href="task.html">Task, п.1</a>):</p>
+<pre><code>если стопы ≤ 50:
+    если таймер «лежу» не взведён → взвести на 0.5 с
+    если таймер истёк → ЛЕЖУ → проба руками → подъём
+иначе:
+    сбросить таймер «лежу»</code></pre>
+<ul>
+  <li>Читай серво не чаще раза в 0.15–0.2 с. Чаще, и пока играет движение, шина сыплет тайм-аутами.</li>
+  <li>Если чтение не удалось, придёт <code>-1</code>. Пропусти его и не сбрасывай таймер.</li>
+  <li>Весь детект уложился в 3 переменные. При лимите 50 это важно.</li>
+</ul>
+
+<h3>Что получилось</h3>
+<div class="table-wrap"><table>
+<tr><th></th><th>с груди</th><th>со спины</th></tr>
+<tr><td>первая рабочая версия</td><td>~15 с</td><td>~15 с</td></tr>
+<tr><td>итоговая (детект 0.5 с, проба 0.5 с)</td><td><b>~4.9 с</b></td><td><b>~6.1 с</b></td></tr>
+</table></div>
+<p>Больше двух третей этого времени — сама страница подъёма. Прогой её не ускорить, только переделкой движения.</p>
+<div class="note"><p><b>Симулятор тут не поможет.</b> В нашем симе нагрузка серво не моделировалась и всегда была 0, то есть робот «лежал» всегда. Проверяй на железе: положи робота на грудь, на спину, поставь в выпады и запиши числа.</p></div>
+</div>
+
+<div class="en">
+<h1>Gyro: how the robot knows it fell</h1>
+<p class="lead">Three paths: the stock ROBOTIS gyro, a real MPU sensor through TrackingCam v3, and no gyro at all, using servo load.</p>
+
+<h2>1. Stock ROBOTIS GYRO: why it "doesn't work"</h2>
+<p>The GYRO board measures <b>rotation speed</b>, not tilt. A robot lying still gives the same value on its back and on its chest. You can only tell the side at the moment of falling, from the sign of the peak.</p>
+<ul>
+  <li>Scale on CM-530: <b>centre ≈ 300</b>, not 512. Range 100…510 = ±300°/s. Thresholds like "&gt;600" never fire, since it never goes above 510.</li>
+  <li>Read it <b>every loop pass</b> and store the sign of a big deviation (back/chest) in a variable. Call the get-up afterwards.</li>
+  <li>Don't average with pauses: the peak lasts a fraction of a second and you'll miss it (see <a href="task.html">pauses in Task</a>).</li>
+</ul>
+
+<h2>2. MPU-6050 / MPU-9250 through TrackingCam v3</h2>
+<p>You can't wire such a sensor straight into the CM-530: its ports are analog-only, no I2C. But TrackingCam v3 has a small Linux computer with a pin header. A script on the camera reads the sensor and writes angles into camera registers, which the CM-530 reads like normal camera data. <b>CM-530 keeps its stock firmware.</b></p>
+
+<h3>Wiring (I2C, no soldering)</h3>
+<div class="table-wrap"><table>
+<tr><th>top row</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
+<tr><th>bottom row</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
+</table></div>
+<div class="warn">
+  <p><b>Careful:</b> 12V is right under SDA, 5V under 3V3. One row off and the module is dead.</p>
+  <p>Address 0x68 on the camera's bus is already taken by its clock chip, and the MPU-6050 uses the same address, so it's invisible. Bridge <b>AD0 → VCC</b> to move it to 0x69.</p>
+</div>
+<p>Over time I2C on our camera started dropping out (every 5–30 s, three different sensors). We switched to an <b>MPU-9250 over SPI</b>: zero dropouts since.</p>
+
+<h3>Registers the robot reads</h3>
+<div class="table-wrap"><table>
+<tr><th>addr</th><th>what</th><th>format</th></tr>
+<tr><td>100</td><td>pitch (front/back)</td><td>degrees×10 + 900 (900 = level)</td></tr>
+<tr><td>102</td><td>roll (sideways)</td><td>degrees×10 + 1800</td></tr>
+<tr><td>104</td><td>state</td><td>0 standing, 1 on chest, 2 on back, 3 on side</td></tr>
+<tr><td>106</td><td>heading</td><td>degrees×10, 0…3599</td></tr>
+</table></div>
+<p>The +900/+1800 offsets exist because registers are unsigned and angles can be negative. In Task: <code>custom:w:51:104</code>.</p>
+
+<h3>Traps</h3>
+<ul>
+  <li><b>Don't poll the camera every loop pass.</b> 300 reads/s flood the bus and the robot's motions start lagging. Once per 0.5 s gives zero errors.</li>
+  <li>A failed read returns <code>-1</code>. Skip it, don't reset your fall counter.</li>
+  <li>Sensor zero depends on how it's mounted. Record values with the robot standing straight and treat those as "level".</li>
+  <li>Heading: the robot starts facing the opponent goal and the gyro remembers where it is. Aiming this way turned out simpler and more reliable than looking for the goal. But a foot impact can make an instant sample say "lying": average over 50 ms and call it a fall only after 0.3 s.</li>
+</ul>
+
+<h2>3. Camera v2 and gyro</h2>
+<p>This trick doesn't work with TrackingCam v2: it's a microcontroller with closed firmware, no Linux, no scripts. Options for v2: an Arduino as its own device on the Dynamixel bus, an Arduino with analog output into a CM-530 port, or the stock gyro (#1).</p>
+
+<h2>4. No gyro: getting up by servo load</h2>
+<p>This works on a <b>plain Bioloid with no extra sensors</b>, stock firmware and R+Task only. We used it in matches. The idea: every AX-12 servo can report how hard it's being pushed (<code>motor:id:111</code>, Present Load). A standing robot puts its weight on its feet. A lying one doesn't.</p>
+
+<h3>Step 1. Detect that the robot is lying</h3>
+<p>Read the load of both ankles (ID 15 and 16) and add them. Our robot's numbers:</p>
+<div class="table-wrap"><table>
+<tr><th>pose</th><th>sum of foot loads</th></tr>
+<tr><td>standing</td><td>96–160</td></tr>
+<tr><td>goalkeeper dives</td><td>88–680 (feet are loaded even more)</td></tr>
+<tr><td>lying on chest</td><td>0–48</td></tr>
+<tr><td>lying on back</td><td>0</td></tr>
+</table></div>
+<p>Threshold <b>50</b> separates them cleanly: "lying" = sum ≤ 50 <b>for half a second straight</b>. A single dip (we saw one sample of 24 entering a dive) doesn't trigger it.</p>
+<div class="warn">
+  <p><b>Bit 1024.</b> AX-12 load is 0…2047, where bit 1024 is the <b>direction</b> of the force, not its size. If the value is ≥ 1024, subtract 1024. Without this the same pose read 88 one time and 1112 the next, and the robot picked the wrong side every other time.</p>
+  <p><b>Why feet, not hips.</b> We first used the hip (ID 11). In a dive one knee is loaded and the other relaxed, so the robot decided it was lying right in the middle of a save. Feet are always loaded in a dive.</p>
+</div>
+
+<h3>Step 2. Chest or back: probe with the arms</h3>
+<p>Foot load is the same on chest and back, so ask the arms. Move the shoulders to a pose where the arm should hit the floor, wait about 0.5 s and read the load of both arms (ID 1 and 2), three times 0.1 s apart:</p>
+<ul>
+  <li>on the <b>chest</b> the arm pushes into the floor: 3-sample sum about 1700–1800;</li>
+  <li>on the <b>back</b> the arm moves freely: about 590;</li>
+  <li>threshold in the middle: <b>≥ 1150 = chest</b> (chest get-up), otherwise back.</li>
+</ul>
+<p>Use load, not arm position: positions on chest and back are nearly the same (317 vs 300), loads differ several times over. Two arms × three samples because a single read is noisy.</p>
+
+<h3>Step 3. Get up without cutting it short</h3>
+<ul>
+  <li>Start the get-up page and wait on a timer for exactly its length (ours: 3.4 s from chest, 4.6 s from back). Check the length in R+Motion: "Expected total play time" on tab F3.</li>
+  <li><b>Don't wait with <code>wait motion:-:51</code></b>: if the page finished before the check, the program hangs forever.</li>
+  <li>Check which page the unit actually plays. Our unit "29 F getup" played page "29 F getup (1)", while the same-named page without the suffix was 10 s long and never called. That made us think the wait was too short for a long time.</li>
+  <li>After getting up: stance, and detection is back on.</li>
+</ul>
+
+<h3>Step 4. Timing: everything by timer</h3>
+<p>We first counted pauses in loop passes ("8 passes = 0.8 s") and nothing worked: a pass was sometimes much shorter, sometimes much longer due to bus timeouts. The robot lay for 4 s before moving its arms. What works is <b>timing with a timer</b> and checking it without blocking (as in <a href="task.html">Task, #1</a>):</p>
+<pre><code>if feet ≤ 50:
+    if "lying" timer not armed → arm it for 0.5 s
+    if timer expired → LYING → arm probe → get up
+else:
+    reset the "lying" timer</code></pre>
+<ul>
+  <li>Read servos at most every 0.15–0.2 s. Faster, and the bus throws timeouts while a motion plays.</li>
+  <li>A failed read returns <code>-1</code>. Skip it, don't reset the timer.</li>
+  <li>The whole detector fits in 3 variables, which matters with a 50-variable limit.</li>
+</ul>
+
+<h3>Results</h3>
+<div class="table-wrap"><table>
+<tr><th></th><th>from chest</th><th>from back</th></tr>
+<tr><td>first working version</td><td>~15 s</td><td>~15 s</td></tr>
+<tr><td>final (0.5 s detect, 0.5 s probe)</td><td><b>~4.9 s</b></td><td><b>~6.1 s</b></td></tr>
+</table></div>
+<p>Over two thirds of that is the get-up page itself. Code can't speed it up, only a reworked motion can.</p>
+<div class="note"><p><b>The simulator won't help here.</b> Our sim didn't model servo load, it was always 0, so the robot was always "lying". Test on hardware: put the robot on its chest, its back, in dives, and write the numbers down.</p></div>
+</div>
+
+<div class="pager"><a href="motion.html">← <span class="ru">R+Motion</span><span class="en">R+Motion</span></a><a href="camera.html"><span class="ru">Камеры</span><span class="en">Cameras</span> →</a></div>
+</main>
+<footer><div class="inner">
+  <span class="ru">Всё проверено на живом роботе, если не сказано обратное. Нашёл ошибку — напиши в YouTube или Instagram.</span>
+  <span class="en">Everything here was tested on a real robot unless stated otherwise. Found a mistake? Message me on YouTube or Instagram.</span>
+</div></footer>
+</body>
+</html>

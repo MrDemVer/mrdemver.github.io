@@ -1,0 +1,180 @@
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --text: #1d1d1b;
+  --muted: #5f5e58;
+  --line: #e2e0d8;
+  --accent: #d0531b;
+  --accent-soft: #fbe9df;
+  --warn-bg: #fff4d6;
+  --warn-line: #e3b23c;
+  --code-bg: #efede6;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151514;
+    --surface: #1e1e1c;
+    --text: #ecebe6;
+    --muted: #a5a39b;
+    --line: #34332f;
+    --accent: #f07a3f;
+    --accent-soft: #3a2519;
+    --warn-bg: #352c14;
+    --warn-line: #a8842c;
+    --code-bg: #262624;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151514;
+  --surface: #1e1e1c;
+  --text: #ecebe6;
+  --muted: #a5a39b;
+  --line: #34332f;
+  --accent: #f07a3f;
+  --accent-soft: #3a2519;
+  --warn-bg: #352c14;
+  --warn-line: #a8842c;
+  --code-bg: #262624;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--accent); }
+a:hover { text-decoration-thickness: 2px; }
+
+/* language switch */
+html[data-lang="ru"] .en { display: none !important; }
+html[data-lang="en"] .ru { display: none !important; }
+
+header.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.top-inner {
+  max-width: 980px; margin: 0 auto; padding: 10px 16px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.brand { font-weight: 800; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+.brand span { color: var(--accent); }
+nav.menu { display: flex; gap: 4px 14px; flex-wrap: wrap; flex: 1; }
+nav.menu a { color: var(--muted); text-decoration: none; font-size: 15px; }
+nav.menu a:hover, nav.menu a.active { color: var(--text); }
+nav.menu a.active { font-weight: 600; }
+.switches { display: flex; gap: 6px; }
+.switches button {
+  font: inherit; font-size: 14px; cursor: pointer;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px;
+}
+.switches button:hover { border-color: var(--accent); }
+
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+main.wide { max-width: 980px; }
+
+h1 { font-size: 34px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.02em; }
+h2 { font-size: 24px; margin: 40px 0 10px; letter-spacing: -0.01em; }
+h3 { font-size: 19px; margin: 26px 0 6px; }
+.lead { color: var(--muted); font-size: 19px; margin: 0 0 24px; }
+
+code {
+  font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88em;
+  background: var(--code-bg); padding: 1px 5px; border-radius: 5px;
+}
+pre {
+  background: var(--code-bg); padding: 14px 16px; border-radius: var(--radius);
+  overflow-x: auto; font-size: 14px; line-height: 1.5;
+}
+pre code { background: none; padding: 0; }
+
+.table-wrap { overflow-x: auto; margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+
+.note, .warn {
+  border-radius: var(--radius); padding: 12px 16px; margin: 16px 0;
+  border-left: 4px solid var(--accent); background: var(--accent-soft);
+}
+.warn { border-left-color: var(--warn-line); background: var(--warn-bg); }
+.note p, .warn p { margin: 4px 0; }
+
+figure.shot { margin: 16px 0; }
+figure.shot img {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--radius); border: 1px solid var(--line);
+}
+figure.shot figcaption { color: var(--muted); font-size: 14px; margin-top: 6px; }
+ol.legend { padding-left: 0; list-style: none; counter-reset: lg; }
+ol.legend li { counter-increment: lg; position: relative; padding-left: 40px; margin: 8px 0; }
+ol.legend li::before {
+  content: counter(lg); position: absolute; left: 0; top: 1px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #d0531b; color: #fff; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.cmd {
+  display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; margin: 14px 0;
+}
+.cmd img { width: 100%; height: auto; display: block; border-radius: 6px; }
+.cmd h3 { margin: 0 0 6px; }
+.cmd dl { margin: 0; }
+.cmd dt { font-family: "JetBrains Mono", Consolas, monospace; font-size: 14px; font-weight: 700; margin-top: 8px; }
+.cmd dd { margin: 2px 0 0; }
+@media (max-width: 560px) {
+  .cmd { grid-template-columns: 1fr; }
+  .cmd img { max-width: 180px; }
+}
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+.card {
+  display: block; text-decoration: none; color: var(--text);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px; transition: border-color .15s, transform .15s;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.card b { display: block; font-size: 18px; margin-bottom: 4px; }
+.card span { color: var(--muted); font-size: 15px; }
+
+.hero { padding: 24px 0 8px; }
+.hero-grid { display: grid; grid-template-columns: 240px 1fr; gap: 36px; align-items: center; }
+.hero-photo {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--radius); border: 1px solid var(--line);
+}
+@media (max-width: 700px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 20px; }
+  .hero-photo { max-width: 200px; margin: 0 auto; }
+}
+.hero h1 { font-size: 42px; }
+.socials { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+.socials a {
+  text-decoration: none; color: var(--text); border: 1px solid var(--line);
+  background: var(--surface); padding: 6px 14px; border-radius: 999px; font-size: 15px;
+}
+.socials a:hover { border-color: var(--accent); }
+
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 48px; flex-wrap: wrap; }
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+footer .inner { max-width: 980px; margin: 0 auto; padding: 18px 16px; }
+
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  h1 { font-size: 28px; }
+  .hero h1 { font-size: 32px; }
+  h2 { font-size: 21px; }
+}
