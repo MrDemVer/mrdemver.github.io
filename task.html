@@ -153,10 +153,10 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <p>Обычная пауза выглядит так:</p>
 <pre><code>load  cm:5 = timer_num:1
 wait  cm:5 > timer_num:0</code></pre>
-<p>Внутри <code>while(1)</code> она блокирует прогу <b>примерно на секунду</b> (а вовсе не на 0.1 с, как кажется). Три такие паузы в цикле, и робот реагирует на мяч через несколько секунд. Без пауз цикл делает около <b>2700 проходов в секунду</b>.</p>
+<p>Внутри <code>while(1)</code> она блокирует прогу <b>примерно на секунду</b> (а вовсе не на 0.128 с, как кажется). Три такие паузы в цикле, и робот реагирует на мяч через несколько секунд. Без пауз цикл делает около <b>2700 проходов в секунду</b>.</p>
 <p><b>Как правильно:</b> взвести таймер в момент события и потом просто проверять его, не блокируясь:</p>
 <pre><code>// событие случилось:
-load  cm:5 = timer_num:5          // 0.5 с
+load  cm:5 = timer_num:4          // 0.512 с (1 шаг таймера = 0.128 с)
 // дальше в каждом проходе цикла:
 if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 <div class="warn"><p><code>hrtimer</code> паузой <b>не является</b>: <code>wait cm:6 == 0</code> после него проходит мгновенно. Если прога «тормозит», ищи <code>wait ... timer_num</code> внутри цикла, а не крути hrtimer.</p></div>
@@ -336,10 +336,10 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 <p>The classic pause:</p>
 <pre><code>load  cm:5 = timer_num:1
 wait  cm:5 > timer_num:0</code></pre>
-<p>Inside <code>while(1)</code> it blocks for <b>about a second</b>, not the 0.1 s you'd expect. Three of these in a loop and the robot reacts to the ball seconds late. Without waits the loop runs about <b>2700 times per second</b>.</p>
+<p>Inside <code>while(1)</code> it blocks for <b>about a second</b>, not the 0.128 s you'd expect. Three of these in a loop and the robot reacts to the ball seconds late. Without waits the loop runs about <b>2700 times per second</b>.</p>
 <p><b>Do this instead:</b> arm the timer when the event happens and just check it each pass:</p>
 <pre><code>// event happened:
-load  cm:5 = timer_num:5          // 0.5 s
+load  cm:5 = timer_num:4          // 0.512 s (1 timer step = 0.128 s)
 // every loop pass:
 if (cm:5 &lt;= timer_num:0) then ... // time is up</code></pre>
 <div class="warn"><p><code>hrtimer</code> is <b>not</b> a pause: <code>wait cm:6 == 0</code> after it passes instantly. If the program "lags", look for <code>wait ... timer_num</code> in the loop, don't tune hrtimer.</p></div>

@@ -51,7 +51,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
   {
     GyroX = PORT[3]            // штатный гиро в порту 3 (в файле: aux:3:67)
     cm:9  = GyroX              // напечатать ЧИСЛО в терминал F3
-    cm:5  = timer_num:1        // пауза 0.1 с, чтобы не завалить терминал
+    cm:5  = timer_num:1        // пауза 0.128 с, чтобы не завалить терминал
     wait  cm:5 &gt; timer_num:0
   }
 }</code></pre>
@@ -93,7 +93,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
     cm:9 = Naklon
     cm:9 = Bok
     cm:9 = Sost
-    cm:5 = timer_num:5         // раз в 0.5 с, не чаще: шина общая
+    cm:5 = timer_num:4         // раз в 0.5 с, не чаще: шина общая
     wait cm:5 &gt; timer_num:0
   }
 }</code></pre>
@@ -188,7 +188,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
   {
     GyroX = PORT[3]            // stock gyro on port 3 (in the file: aux:3:67)
     cm:9  = GyroX              // print a NUMBER to the F3 terminal
-    cm:5  = timer_num:1        // 0.1 s pause so the terminal isn't flooded
+    cm:5  = timer_num:1        // 0.128 s pause so the terminal isn't flooded
     wait  cm:5 &gt; timer_num:0
   }
 }</code></pre>
@@ -230,7 +230,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
     cm:9 = Pitch
     cm:9 = Roll
     cm:9 = State
-    cm:5 = timer_num:5         // every 0.5 s, no faster: the bus is shared
+    cm:5 = timer_num:4         // every 0.5 s, no faster: the bus is shared
     wait cm:5 &gt; timer_num:0
   }
 }</code></pre>
