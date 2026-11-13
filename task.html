@@ -132,13 +132,13 @@
   <figcaption>Робот не подключён, поэтому посередине «Disconnected»</figcaption>
 </figure>
 <ol class="legend">
-  <li><b>Start</b> — подключиться и запустить прогу, которая уже залита в контроллер.</li>
+  <li><b>Start</b> — подключиться к роботу и включить терминал отладки: в мониторе начинают появляться числа от проги, работает экранный пульт. Саму прогу эта кнопка <b>не запускает</b>, она запускается на роботе.</li>
   <li><b>Device</b> — COM-порт робота.</li>
   <li><b>Program Output Monitor</b> — сюда прога печатает числа через <code>cm:9</code>. Главный инструмент отладки: смотришь, что робот на самом деле видит и решает, вместо того чтобы гадать.</li>
   <li><b>Virtual Remote Controller</b> — пульт на экране. Кнопки U/D/L/R и 1–6 уходят в прогу, как с настоящего пульта. Удобно проверить ручное управление без пульта.</li>
   <li>Последнее значение, полученное с пульта.</li>
 </ol>
-<div class="note"><p><b>Как отлаживать:</b> в нужных местах проги печатай маркер и числа (<code>cm:9 = 7777</code>, потом <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), залей, открой F3 и нажми Start. Положи робота в нужную ситуацию и запиши числа. Пороги ставь по ним, а не на глаз.</p></div>
+<div class="note"><p><b>Как отлаживать:</b> в нужных местах проги печатай маркер и числа (<code>cm:9 = 7777</code>, потом <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), залей, открой F3 и нажми Start (подключится терминал), потом запусти прогу на роботе. Положи робота в нужную ситуацию и запиши числа. Пороги ставь по ним, а не на глаз.</p></div>
 
 <h2 id="waits">1. Паузы внутри главного цикла убивают реакцию</h2>
 <p>Обычная пауза выглядит так:</p>
@@ -315,13 +315,13 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
   <figcaption>No robot connected, hence "Disconnected"</figcaption>
 </figure>
 <ol class="legend">
-  <li><b>Start</b> connects and runs the program already on the controller.</li>
+  <li><b>Start</b> connects to the robot and turns on the debug terminal: numbers from the program start showing in the monitor and the on-screen remote works. It does <b>not</b> start the program itself; that is started on the robot.</li>
   <li><b>Device</b> = the robot's COM port.</li>
   <li><b>Program Output Monitor</b> shows numbers your program prints via <code>cm:9</code>. Your main debugging tool: see what the robot actually sees and decides instead of guessing.</li>
   <li><b>Virtual Remote Controller</b> = an on-screen remote. U/D/L/R and 1–6 go to the program like a real remote. Handy for testing manual control without one.</li>
   <li>The last value received from the remote.</li>
 </ol>
-<div class="note"><p><b>How to debug:</b> print a marker and numbers where you need them (<code>cm:9 = 7777</code>, then <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), upload, open F3 and press Start. Put the robot in the situation and write the numbers down. Set thresholds from them, not by eye.</p></div>
+<div class="note"><p><b>How to debug:</b> print a marker and numbers where you need them (<code>cm:9 = 7777</code>, then <code>cm:9 = Cx</code>, <code>cm:9 = Cy</code>), upload, open F3 and press Start (the terminal connects), then start the program on the robot. Put the robot in the situation and write the numbers down. Set thresholds from them, not by eye.</p></div>
 
 <h2 id="waits-en">1. Waits inside the main loop kill reaction time</h2>
 <p>The classic pause:</p>
