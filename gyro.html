@@ -43,6 +43,20 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
   <li>Усреднять с паузами нельзя: пик длится доли секунды и пролетит мимо (см. <a href="task.html">паузы в Task</a>).</li>
 </ul>
 
+<h3>Базовая прога: просто посмотреть числа</h3>
+<p>Начни с неё: залей, открой F3 в R+Task, нажми Start и покачай робота руками. Увидишь, где у твоего гиро ноль и какие пики при падении.</p>
+<pre><code>START PROGRAM
+{
+  ENDLESS LOOP
+  {
+    GyroX = PORT[3]            // штатный гиро в порту 3 (в файле: aux:3:67)
+    cm:9  = GyroX              // напечатать ЧИСЛО в терминал F3
+    cm:5  = timer_num:1        // пауза 0.1 с, чтобы не завалить терминал
+    wait  cm:5 &gt; timer_num:0
+  }
+}</code></pre>
+<div class="note"><p>Печатай через <code>cm:9</code>, не через <code>cm:11</code>: <code>cm:11</code> печатает символ, и вместо чисел в терминале будет каша из значков. Пауза здесь нормальна, потому что прога только смотрит. В боевой проге пауз в цикле быть не должно.</p></div>
+
 <h2>2. MPU-6050 / MPU-9250 через TrackingCam v3</h2>
 <p>Напрямую в CM-530 такой датчик не подключить: порты там аналоговые, I2C нет. Зато внутри камеры v3 стоит Linux-компьютер с гребёнкой контактов. Скрипт на камере читает датчик и кладёт углы в её регистры, а CM-530 читает их как обычную камеру. <b>Прошивка CM-530 остаётся заводской.</b></p>
 
@@ -66,6 +80,24 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <tr><td>106</td><td>курс</td><td>градусы×10, 0…3599</td></tr>
 </table></div>
 <p>Смещения +900 и +1800 нужны, потому что регистр беззнаковый, а угол бывает отрицательным. В Task читать так: <code>custom:w:51:104</code>.</p>
+
+<h3>Базовая прога: читать углы с камеры</h3>
+<pre><code>START PROGRAM
+{
+  ENDLESS LOOP
+  {
+    Naklon = custom:w:51:100   // вперёд-назад, 900 = ровно
+    Bok    = custom:w:51:102   // вбок, 1800 = ровно
+    Sost   = custom:w:51:104   // 0 стоит, 1 грудь, 2 спина, 3 бок
+    cm:9 = 7777                // маркер начала строки
+    cm:9 = Naklon
+    cm:9 = Bok
+    cm:9 = Sost
+    cm:5 = timer_num:5         // раз в 0.5 с, не чаще: шина общая
+    wait cm:5 &gt; timer_num:0
+  }
+}</code></pre>
+<p>Если пришло <code>-1</code>, значит чтение сорвалось. Это не угол, такой замер просто пропусти.</p>
 
 <h3>Грабли</h3>
 <ul>
@@ -148,6 +180,20 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
   <li>Don't average with pauses: the peak lasts a fraction of a second and you'll miss it (see <a href="task.html">pauses in Task</a>).</li>
 </ul>
 
+<h3>Basic program: just look at the numbers</h3>
+<p>Start here: upload, open F3 in R+Task, press Start and rock the robot by hand. You'll see where your gyro's zero is and how big the peaks are when it falls.</p>
+<pre><code>START PROGRAM
+{
+  ENDLESS LOOP
+  {
+    GyroX = PORT[3]            // stock gyro on port 3 (in the file: aux:3:67)
+    cm:9  = GyroX              // print a NUMBER to the F3 terminal
+    cm:5  = timer_num:1        // 0.1 s pause so the terminal isn't flooded
+    wait  cm:5 &gt; timer_num:0
+  }
+}</code></pre>
+<div class="note"><p>Print with <code>cm:9</code>, not <code>cm:11</code>: <code>cm:11</code> prints a character, so you'd get a mess of symbols instead of numbers. The pause is fine here because the program only watches. A match program must not pause inside its loop.</p></div>
+
 <h2>2. MPU-6050 / MPU-9250 through TrackingCam v3</h2>
 <p>You can't wire such a sensor straight into the CM-530: its ports are analog-only, no I2C. But TrackingCam v3 has a small Linux computer with a pin header. A script on the camera reads the sensor and writes angles into camera registers, which the CM-530 reads like normal camera data. <b>CM-530 keeps its stock firmware.</b></p>
 
@@ -171,6 +217,24 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <tr><td>106</td><td>heading</td><td>degrees×10, 0…3599</td></tr>
 </table></div>
 <p>The +900/+1800 offsets exist because registers are unsigned and angles can be negative. In Task: <code>custom:w:51:104</code>.</p>
+
+<h3>Basic program: read angles from the camera</h3>
+<pre><code>START PROGRAM
+{
+  ENDLESS LOOP
+  {
+    Pitch = custom:w:51:100    // forward/back, 900 = level
+    Roll  = custom:w:51:102    // sideways, 1800 = level
+    State = custom:w:51:104    // 0 standing, 1 chest, 2 back, 3 side
+    cm:9 = 7777                // marker at the start of a line
+    cm:9 = Pitch
+    cm:9 = Roll
+    cm:9 = State
+    cm:5 = timer_num:5         // every 0.5 s, no faster: the bus is shared
+    wait cm:5 &gt; timer_num:0
+  }
+}</code></pre>
+<p><code>-1</code> means a failed read. It's not an angle, just skip that sample.</p>
 
 <h3>Traps</h3>
 <ul>
