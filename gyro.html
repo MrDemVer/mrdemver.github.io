@@ -45,16 +45,10 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Базовая прога: просто посмотреть числа</h3>
 <p>Начни с неё: залей, открой F3 в R+Task, нажми Start и покачай робота руками. Увидишь, где у твоего гиро ноль и какие пики при падении.</p>
-<pre><code>START PROGRAM
-{
-  ENDLESS LOOP
-  {
-    GyroX = PORT[3]            // штатный гиро в порту 3 (в файле: aux:3:67)
-    cm:9  = GyroX              // напечатать ЧИСЛО в терминал F3
-    cm:5  = timer_num:1        // пауза 0.128 с, чтобы не завалить терминал
-    wait  cm:5 &gt; timer_num:0
-  }
-}</code></pre>
+<figure class="shot">
+  <img src="img/gyro_task_stock.png" width="788" height="484" alt="Прога в R+Task: чтение штатного гиро из порта 3" loading="lazy">
+  <figcaption>Гиро в порту 3 выбирается как PORT[3]: User Device</figcaption>
+</figure>
 <div class="note"><p>Печатай через <code>cm:9</code>, не через <code>cm:11</code>: <code>cm:11</code> печатает символ, и вместо чисел в терминале будет каша из значков. Пауза здесь нормальна, потому что прога только смотрит. В боевой проге пауз в цикле быть не должно.</p></div>
 
 <h2>2. MPU-6050 / MPU-9250 через TrackingCam v3</h2>
@@ -82,21 +76,10 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <p>Смещения +900 и +1800 нужны, потому что регистр беззнаковый, а угол бывает отрицательным. В Task читать так: <code>custom:w:51:104</code>.</p>
 
 <h3>Базовая прога: читать углы с камеры</h3>
-<pre><code>START PROGRAM
-{
-  ENDLESS LOOP
-  {
-    Naklon = custom:w:51:100   // вперёд-назад, 900 = ровно
-    Bok    = custom:w:51:102   // вбок, 1800 = ровно
-    Sost   = custom:w:51:104   // 0 стоит, 1 грудь, 2 спина, 3 бок
-    cm:9 = 7777                // маркер начала строки
-    cm:9 = Naklon
-    cm:9 = Bok
-    cm:9 = Sost
-    cm:5 = timer_num:4         // раз в 0.5 с, не чаще: шина общая
-    wait cm:5 &gt; timer_num:0
-  }
-}</code></pre>
+<figure class="shot">
+  <img src="img/gyro_task_v3.png" width="788" height="754" alt="Прога в R+Task: чтение углов гиро с камеры v3" loading="lazy">
+  <figcaption>Регистры камеры: ID[CamID]: ADDR[100(w)] и дальше</figcaption>
+</figure>
 <p>Если пришло <code>-1</code>, значит чтение сорвалось. Это не угол, такой замер просто пропусти.</p>
 
 <h3>Грабли</h3>
@@ -186,7 +169,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 {
   ENDLESS LOOP
   {
-    GyroX = PORT[3]            // stock gyro on port 3 (in the file: aux:3:67)
+    GyroX = PORT[3]:User Device  // stock gyro on port 3
     cm:9  = GyroX              // print a NUMBER to the F3 terminal
     cm:5  = timer_num:1        // 0.128 s pause so the terminal isn't flooded
     wait  cm:5 &gt; timer_num:0
@@ -230,7 +213,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
     cm:9 = Pitch
     cm:9 = Roll
     cm:9 = State
-    cm:5 = timer_num:4         // every 0.5 s, no faster: the bus is shared
+    cm:5 = timer_num:4         // 0.512 s, no faster: the bus is shared
     wait cm:5 &gt; timer_num:0
   }
 }</code></pre>
