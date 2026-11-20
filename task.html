@@ -39,10 +39,10 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h1>R+Task: как писать проги и не сойти с ума</h1>
 <p class="lead">RoboPlus Task для CM-530. Всё здесь проверено на живом роботе. В инструкции ROBOTIS этого почти нет.</p>
 
-<h2>Потолки R+Task, в которые я упёрся</h2>
+<h2>Ограничения R+Task, в которые я упёрся</h2>
 <div class="table-wrap"><table>
-<tr><th>Потолок</th><th>Что на деле</th><th>Как жить</th></tr>
-<tr><td>Переменные</td><td>50 штук, 51-я не даёт залить прогу. Редактор считает на 1–2 больше, чем есть в файле</td><td>держать до 47–48, паковать два числа в одну (<a href="#vars">п.2</a>)</td></tr>
+<tr><th>Ограничение</th><th>Как на самом деле</th><th>Как обойти</th></tr>
+<tr><td>Переменные</td><td>50 штук, 51-я не даёт залить прогу. Редактор считает на 1–2 больше, чем есть в файле</td><td>Держать до 47–48. Не хватает — паковать переменные: два числа в одну (<a href="#vars">п.2</a>)</td></tr>
 <tr><td>Пауза <code>wait … timer_num</code></td><td>стоит около 1 с, вся прога в это время стоит</td><td>в главном цикле не ждать, а проверять таймер (<a href="#waits">п.1</a>)</td></tr>
 <tr><td>Скорость цикла</td><td>около 2700 проходов в секунду, если нет пауз</td><td>этого хватает, тормозят только паузы</td></tr>
 <tr><td>Камера во время движения</td><td>пока играет страница движения, шина серво занята, и камеру нормально не прочитать</td><td>читать камеру между шагами. Из-за этого я ушёл на <a href="firmware.html">свою прошивку</a></td></tr>
@@ -197,7 +197,7 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 
 <h2 id="servo">5. Серво: что читать</h2>
 <div class="table-wrap"><table>
-<tr><th>в Task</th><th>адрес AX-12</th><th>что</th></tr>
+<tr><th>В Task</th><th>Адрес AX-12</th><th>Значение</th></tr>
 <tr><td><code>motor:id:100</code></td><td>24</td><td>момент вкл/выкл</td></tr>
 <tr><td><code>motor:id:106</code></td><td>30</td><td>целевая позиция</td></tr>
 <tr><td><code>motor:id:109</code></td><td>36</td><td>текущая позиция</td></tr>
@@ -224,8 +224,8 @@ if (cm:5 &lt;= timer_num:0) then ... // время вышло</code></pre>
 
 <h2>R+Task limits I ran into</h2>
 <div class="table-wrap"><table>
-<tr><th>Limit</th><th>What it really is</th><th>How to live with it</th></tr>
-<tr><td>Variables</td><td>50; the 51st blocks the download. The editor counts 1–2 more than the file has</td><td>keep to 47–48, pack two numbers into one (<a href="#vars-en">section 2</a>)</td></tr>
+<tr><th>Limit</th><th>How it really works</th><th>Workaround</th></tr>
+<tr><td>Variables</td><td>50; the 51st blocks the download. The editor counts 1–2 more than the file has</td><td>Keep to 47–48. Not enough? Pack variables: two numbers in one (<a href="#vars-en">section 2</a>)</td></tr>
 <tr><td><code>wait … timer_num</code></td><td>costs about 1 s, the whole program stalls</td><td>don't wait in the main loop, check the timer instead (<a href="#waits-en">section 1</a>)</td></tr>
 <tr><td>Loop speed</td><td>about 2700 passes per second without waits</td><td>plenty; only waits slow it down</td></tr>
 <tr><td>Camera during a motion</td><td>while a motion page plays, the servo bus is busy and the camera can't be read reliably</td><td>read the camera between steps. This is why I moved to <a href="firmware.html">custom firmware</a></td></tr>
@@ -380,7 +380,7 @@ get y:    T = T * 1000 ;  y = P - T</code></pre>
 
 <h2 id="servo-en">5. Servos: what to read</h2>
 <div class="table-wrap"><table>
-<tr><th>in Task</th><th>AX-12 addr</th><th>meaning</th></tr>
+<tr><th>In Task</th><th>AX-12 address</th><th>Meaning</th></tr>
 <tr><td><code>motor:id:100</code></td><td>24</td><td>torque on/off</td></tr>
 <tr><td><code>motor:id:106</code></td><td>30</td><td>goal position</td></tr>
 <tr><td><code>motor:id:109</code></td><td>36</td><td>present position</td></tr>

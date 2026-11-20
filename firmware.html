@@ -58,7 +58,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Карта флеша</h3>
 <div class="table-wrap"><table>
-<tr><th>адрес</th><th>что</th></tr>
+<tr><th>Адрес</th><th>Что там</th></tr>
 <tr><td>0x08000000</td><td>загрузчик, 12 КБ, <b>защищён от записи</b></td></tr>
 <tr><td>0x08003000</td><td>прошивка (заводская или твоя), 128 КБ</td></tr>
 <tr><td>0x08023000</td><td>программа Task, 128 КБ</td></tr>
@@ -129,7 +129,7 @@ s.write(b"go\r")                      # запустить</code></pre>
 <h2>Шаг 5. Шина Dynamixel: серво и камера</h2>
 <p>Функции из <code>dynamixel.h</code> в SDK:</p>
 <div class="table-wrap"><table>
-<tr><th>функция</th><th>что делает</th></tr>
+<tr><th>Функция</th><th>Что делает</th></tr>
 <tr><td><code>dxl_initialize(0, 1)</code></td><td>поднять шину (1 = 1 Мбит/с, как у AX-12)</td></tr>
 <tr><td><code>dxl_ping(id)</code></td><td>проверить, отвечает ли устройство</td></tr>
 <tr><td><code>dxl_read_byte / dxl_read_word(id, адрес)</code></td><td>прочитать 1 или 2 байта</td></tr>
@@ -229,7 +229,7 @@ for (t = 1; t &lt;= N; t++) {
 
 <h3>Flash map</h3>
 <div class="table-wrap"><table>
-<tr><th>address</th><th>what</th></tr>
+<tr><th>Address</th><th>Contents</th></tr>
 <tr><td>0x08000000</td><td>bootloader, 12 KB, <b>write-protected</b></td></tr>
 <tr><td>0x08003000</td><td>firmware (stock or yours), 128 KB</td></tr>
 <tr><td>0x08023000</td><td>Task program, 128 KB</td></tr>
@@ -300,7 +300,7 @@ s.write(b"go\r")                      # run</code></pre>
 <h2>Step 5. The Dynamixel bus: servos and camera</h2>
 <p>Functions from the SDK's <code>dynamixel.h</code>:</p>
 <div class="table-wrap"><table>
-<tr><th>function</th><th>what it does</th></tr>
+<tr><th>Function</th><th>What it does</th></tr>
 <tr><td><code>dxl_initialize(0, 1)</code></td><td>start the bus (1 = 1 Mbps, like AX-12)</td></tr>
 <tr><td><code>dxl_ping(id)</code></td><td>check whether a device answers</td></tr>
 <tr><td><code>dxl_read_byte / dxl_read_word(id, addr)</code></td><td>read 1 or 2 bytes</td></tr>

@@ -60,8 +60,8 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Подключение (I2C, без пайки)</h3>
 <div class="table-wrap"><table>
-<tr><th>верхний ряд</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
-<tr><th>нижний ряд</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
+<tr><th>Верхний ряд</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
+<tr><th>Нижний ряд</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
 </table></div>
 <div class="warn">
   <p><b>Осторожно:</b> под SDA стоит 12V, под 3V3 — 5V. Ошибёшься на один ряд, и модуль сгорит.</p>
@@ -71,7 +71,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Регистры, которые читает робот</h3>
 <div class="table-wrap"><table>
-<tr><th>адрес</th><th>что</th><th>формат</th></tr>
+<tr><th>Адрес</th><th>Что там</th><th>Формат</th></tr>
 <tr><td>100</td><td>наклон вперёд-назад</td><td>градусы×10 + 900 (900 = ровно)</td></tr>
 <tr><td>102</td><td>наклон вбок</td><td>градусы×10 + 1800</td></tr>
 <tr><td>104</td><td>состояние</td><td>0 стоит, 1 на груди, 2 на спине, 3 на боку</td></tr>
@@ -103,7 +103,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Шаг 1. Понять, что робот лежит</h3>
 <p>Читаем нагрузку двух голеностопов (ID 15 и 16) и складываем. Замеры на нашем роботе:</p>
 <div class="table-wrap"><table>
-<tr><th>поза</th><th>сумма нагрузок стоп</th></tr>
+<tr><th>Поза</th><th>Сумма нагрузок стоп</th></tr>
 <tr><td>стоит</td><td>96–160</td></tr>
 <tr><td>в выпадах вратаря</td><td>88–680 (стопы нагружены даже сильнее)</td></tr>
 <tr><td>лежит на груди</td><td>0–48</td></tr>
@@ -147,7 +147,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Что получилось</h3>
 <div class="table-wrap"><table>
-<tr><th></th><th>с груди</th><th>со спины</th></tr>
+<tr><th></th><th>С груди</th><th>Со спины</th></tr>
 <tr><td>первая рабочая версия</td><td>~15 с</td><td>~15 с</td></tr>
 <tr><td>итоговая (детект 0.5 с, проба 0.5 с)</td><td><b>~4.9 с</b></td><td><b>~6.1 с</b></td></tr>
 </table></div>
@@ -186,8 +186,8 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Wiring (I2C, no soldering)</h3>
 <div class="table-wrap"><table>
-<tr><th>top row</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
-<tr><th>bottom row</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
+<tr><th>Top row</th><td>…</td><td>B11</td><td><b>SCL</b></td><td><b>SDA</b></td><td><b>3V3</b></td></tr>
+<tr><th>Bottom row</th><td>…</td><td>PB6</td><td><b>GND</b></td><td>12V</td><td>5V</td></tr>
 </table></div>
 <div class="warn">
   <p><b>Careful:</b> 12V is right under SDA, 5V under 3V3. One row off and the module is dead.</p>
@@ -197,7 +197,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Registers the robot reads</h3>
 <div class="table-wrap"><table>
-<tr><th>addr</th><th>what</th><th>format</th></tr>
+<tr><th>Address</th><th>Contents</th><th>Format</th></tr>
 <tr><td>100</td><td>pitch (front/back)</td><td>degrees×10 + 900 (900 = level)</td></tr>
 <tr><td>102</td><td>roll (sideways)</td><td>degrees×10 + 1800</td></tr>
 <tr><td>104</td><td>state</td><td>0 standing, 1 on chest, 2 on back, 3 on side</td></tr>
@@ -240,7 +240,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Step 1. Detect that the robot is lying</h3>
 <p>Read the load of both ankles (ID 15 and 16) and add them. Our robot's numbers:</p>
 <div class="table-wrap"><table>
-<tr><th>pose</th><th>sum of foot loads</th></tr>
+<tr><th>Pose</th><th>Sum of foot loads</th></tr>
 <tr><td>standing</td><td>96–160</td></tr>
 <tr><td>goalkeeper dives</td><td>88–680 (feet are loaded even more)</td></tr>
 <tr><td>lying on chest</td><td>0–48</td></tr>
@@ -284,7 +284,7 @@ else:
 
 <h3>Results</h3>
 <div class="table-wrap"><table>
-<tr><th></th><th>from chest</th><th>from back</th></tr>
+<tr><th></th><th>From chest</th><th>From back</th></tr>
 <tr><td>first working version</td><td>~15 s</td><td>~15 s</td></tr>
 <tr><td>final (0.5 s detect, 0.5 s probe)</td><td><b>~4.9 s</b></td><td><b>~6.1 s</b></td></tr>
 </table></div>

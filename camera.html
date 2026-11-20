@@ -64,7 +64,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h2>Главная причина «камера не видит» — свет</h2>
 <p>Один и тот же мяч в разном свете так сильно меняет цвет, что окна настроек вообще не пересекаются:</p>
 <div class="table-wrap"><table>
-<tr><th>условия</th><th>Value</th><th>Ncr (краснота)</th><th>Ncb (синева)</th></tr>
+<tr><th>Условия</th><th>Value</th><th>Ncr (краснота)</th><th>Ncb (синева)</th></tr>
 <tr><td>тёмная комната</td><td>13…39</td><td>17…35</td><td>−10…−1</td></tr>
 <tr><td>та же комната, автоэкспозиция</td><td>52…84</td><td>54…70</td><td>−27…−17</td></tr>
 <tr><td>яркий свет</td><td>92…183</td><td>40…76</td><td>−57…−29</td></tr>
@@ -101,7 +101,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Администрирование и заводские пароли</h3>
 <p>Кроме сайта настройки, у камеры есть панель администрирования (по <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_3.html" target="_blank" rel="noopener">инструкции производителя</a>):</p>
 <div class="table-wrap"><table>
-<tr><th>что</th><th>адрес</th><th>заводской вход</th></tr>
+<tr><th>Что</th><th>Адрес</th><th>Заводской вход</th></tr>
 <tr><td>сайт настройки</td><td><code>http://trackingcam3.local</code></td><td>без пароля</td></tr>
 <tr><td>администрирование (службы, файлы, терминал, обновление)</td><td><code>http://trackingcam3.local:9999</code></td><td><code>root</code> / <code>12345</code></td></tr>
 <tr><td>Wi-Fi точка камеры</td><td>сеть <code>trackingcam3-xxxxxx</code></td><td>пароль <code>12345678</code></td></tr>
@@ -130,7 +130,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Кнопки, которые запускают скрипты</h3>
 <p>Раз кнопка пишет только одно число, мы сделали так: кнопка пишет <b>код</b> в неиспользуемый параметр камеры, а маленькая служба на камере видит этот код и запускает нужный скрипт. Пока скрипт работает, в параметре лежит 1, по окончании 0. Служба стартует сама при включении.</p>
 <div class="table-wrap"><table>
-<tr><th>кнопка</th><th>код</th><th>что делает</th></tr>
+<tr><th>Кнопка</th><th>Код</th><th>Что делает</th></tr>
 <tr><td><b>Улучшить</b></td><td>777</td><td>подбирает окно цвета под то, что сейчас в кадре (~6 с). Мяч должен быть в кадре.</td></tr>
 <tr><td><b>Подобрать сам</b></td><td>700</td><td>сам выбирает экспозицию под свет в зале (~25 с)</td></tr>
 <tr><td><b>Тёмный / Средний / Светлый</b></td><td>701 / 702 / 703</td><td>быстро выставить экспозицию под свет вручную</td></tr>
@@ -160,7 +160,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Светодиоды камеры</h3>
 <div class="table-wrap"><table>
-<tr><th>что горит</th><th>значит</th></tr>
+<tr><th>Что горит</th><th>Что значит</th></tr>
 <tr><td>красный мигает</td><td>камера загружается, детектор ещё не готов</td></tr>
 <tr><td>красный ровно</td><td>готова к работе</td></tr>
 <tr><td>зелёный</td><td>в кадре мяч</td></tr>
@@ -198,7 +198,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h2>The #1 reason "the camera sees nothing": light</h2>
 <p>The same ball under different lighting moves so far in colour space that the windows don't even overlap:</p>
 <div class="table-wrap"><table>
-<tr><th>conditions</th><th>Value</th><th>Ncr (red)</th><th>Ncb (blue)</th></tr>
+<tr><th>Conditions</th><th>Value</th><th>Ncr (red)</th><th>Ncb (blue)</th></tr>
 <tr><td>dark room</td><td>13…39</td><td>17…35</td><td>−10…−1</td></tr>
 <tr><td>same room, auto exposure</td><td>52…84</td><td>54…70</td><td>−27…−17</td></tr>
 <tr><td>bright light</td><td>92…183</td><td>40…76</td><td>−57…−29</td></tr>
@@ -235,7 +235,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Admin panel and factory passwords</h3>
 <p>Besides the setup page, the camera has an admin panel (per the <a href="https://wiki.appliedrobotics.ru/metod/Trackingcam_v3/g_3.html" target="_blank" rel="noopener">maker's guide</a>):</p>
 <div class="table-wrap"><table>
-<tr><th>what</th><th>address</th><th>factory login</th></tr>
+<tr><th>What</th><th>Address</th><th>Factory login</th></tr>
 <tr><td>setup page</td><td><code>http://trackingcam3.local</code></td><td>no password</td></tr>
 <tr><td>admin (services, files, terminal, updates)</td><td><code>http://trackingcam3.local:9999</code></td><td><code>root</code> / <code>12345</code></td></tr>
 <tr><td>camera Wi-Fi hotspot</td><td>network <code>trackingcam3-xxxxxx</code></td><td>password <code>12345678</code></td></tr>
@@ -264,7 +264,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 <h3>Buttons that run scripts</h3>
 <p>Since a button only writes one number, we made it write a <b>code</b> to an unused camera parameter. A small service on the camera sees the code and runs the matching script. While it runs, the parameter holds 1, then 0. The service starts on boot.</p>
 <div class="table-wrap"><table>
-<tr><th>button</th><th>code</th><th>what it does</th></tr>
+<tr><th>Button</th><th>Code</th><th>What it does</th></tr>
 <tr><td><b>Improve</b></td><td>777</td><td>tunes the colour window to what's in the frame (~6 s). The ball must be in view.</td></tr>
 <tr><td><b>Auto pick</b></td><td>700</td><td>picks exposure for the room's light (~25 s)</td></tr>
 <tr><td><b>Dark / Medium / Bright</b></td><td>701 / 702 / 703</td><td>quick manual exposure presets</td></tr>
@@ -294,7 +294,7 @@ ym(114229599,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true});
 
 <h3>Camera LEDs</h3>
 <div class="table-wrap"><table>
-<tr><th>LED</th><th>meaning</th></tr>
+<tr><th>LED</th><th>Meaning</th></tr>
 <tr><td>red blinking</td><td>booting, detector not ready</td></tr>
 <tr><td>red steady</td><td>ready</td></tr>
 <tr><td>green</td><td>ball in view</td></tr>
