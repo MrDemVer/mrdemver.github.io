@@ -16,6 +16,13 @@
       if (lb) lb.textContent = root.getAttribute("data-lang") === "ru" ? "EN" : "RU";
     }
     paint();
+    var mb = document.getElementById("menu-btn");
+    var hdr = document.querySelector("header.top");
+    if (mb && hdr) mb.addEventListener("click", function () {
+      var open = hdr.classList.toggle("open");
+      mb.setAttribute("aria-expanded", open ? "true" : "false");
+      mb.textContent = open ? "✕" : "☰";
+    });
     if (lb) lb.addEventListener("click", function () {
       var l = root.getAttribute("data-lang") === "ru" ? "en" : "ru";
       root.setAttribute("data-lang", l); root.setAttribute("lang", l); set("lang", l); paint();
