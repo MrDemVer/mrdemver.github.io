@@ -177,7 +177,7 @@ footer .inner { max-width: 980px; margin: 0 auto; padding: 18px 16px; }
   background: var(--surface); color: var(--text);
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px;
 }
-@media (max-width: 760px) {
+@media (max-width: 600px) {
   .top-inner { gap: 10px; }
   .brand { flex: 1; }
   #menu-btn { display: block; order: 2; }
